@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+# personal data exports: keep them out of the repo unless you mean to commit them
+thesis-brain*.json
