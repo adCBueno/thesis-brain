@@ -1,4 +1,5 @@
 import { del, get, set } from 'idb-keyval'
+import { t } from './i18n'
 import { useSyncExternalStore } from 'react'
 import type { State } from '../types'
 import { blank, normalize } from './utils'
@@ -62,7 +63,7 @@ export async function loadInitial(): Promise<State> {
     const raw = await get(STATE_KEY)
     if (raw) s = normalize(raw)
   } catch {
-    setStatus({ kind: 'error', message: 'IndexedDB no disponible (¿modo incógnito?)' })
+    setStatus({ kind: 'error', message: t('IndexedDB no disponible (¿modo incógnito?)') })
   }
   try {
     const raw = localStorage.getItem(BACKUP_KEY)
@@ -127,7 +128,7 @@ export async function flush() {
   try {
     await set(STATE_KEY, s)
   } catch {
-    setStatus({ kind: 'error', message: 'No se pudo guardar en el navegador. Exporta un respaldo.' })
+    setStatus({ kind: 'error', message: t('No se pudo guardar en el navegador. Exporta un respaldo.') })
     return
   }
   if (handle && status.kind !== 'needs-permission') {
@@ -153,7 +154,7 @@ if (typeof document !== 'undefined') {
 
 /** Create a new JSON file and keep it in sync from now on. */
 export async function connectNewFile(current: State) {
-  if (!window.showSaveFilePicker) throw new Error('Tu navegador no soporta guardar en archivo (usa Chrome o Edge).')
+  if (!window.showSaveFilePicker) throw new Error(t('Tu navegador no soporta guardar en archivo (usa Chrome o Edge).'))
   const h = await window.showSaveFilePicker({ suggestedName: 'thesis-brain.json', types: [JSON_TYPE] })
   handle = h
   await set(HANDLE_KEY, h)
@@ -164,12 +165,12 @@ export async function connectNewFile(current: State) {
 
 /** Open an existing JSON file (e.g. synced from another computer). Returns its data. */
 export async function openExistingFile(): Promise<State> {
-  if (!window.showOpenFilePicker) throw new Error('Tu navegador no soporta abrir archivos así (usa Chrome o Edge).')
+  if (!window.showOpenFilePicker) throw new Error(t('Tu navegador no soporta abrir archivos así (usa Chrome o Edge).'))
   const [h] = await window.showOpenFilePicker({ types: [JSON_TYPE], multiple: false })
   const data = await readHandle(h)
-  if (!data) throw new Error('Ese archivo no es un respaldo válido de Thesis Brain.')
+  if (!data) throw new Error(t('Ese archivo no es un respaldo válido de Thesis Brain.'))
   const perm = (await h.requestPermission?.({ mode: 'readwrite' })) ?? 'granted'
-  if (perm !== 'granted') throw new Error('Sin permiso de escritura sobre el archivo.')
+  if (perm !== 'granted') throw new Error(t('Sin permiso de escritura sobre el archivo.'))
   handle = h
   await set(HANDLE_KEY, h)
   setStatus({ kind: 'file', fileName: h.name })

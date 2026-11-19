@@ -1,3 +1,5 @@
+import { t } from './i18n'
+
 /**
  * Optional AI synthesis with the Anthropic API, using YOUR key.
  * The key is stored only in this browser (localStorage) and sent straight to api.anthropic.com.
@@ -48,7 +50,7 @@ Return only the paragraph, the separator and the bullets.`
 
 export async function synthesize(prompt: string, signal?: AbortSignal): Promise<string> {
   const { apiKey, model } = getAI()
-  if (!apiKey) throw new Error('Configura tu API key de Anthropic en ⚙️ Datos y ajustes.')
+  if (!apiKey) throw new Error(t('Configura tu API key de Anthropic en ⚙️ Datos y ajustes.'))
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     signal,

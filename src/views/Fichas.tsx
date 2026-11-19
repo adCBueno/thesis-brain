@@ -1,5 +1,6 @@
 import { NoteCard } from '../components/Cards'
 import { Empty, Head, usePersisted } from '../components/common'
+import { rich, t, tp } from '../lib/i18n'
 import { useAppState } from '../lib/store'
 import { cite, noteUsed, notesOf, sourceById } from '../lib/utils'
 import { useUI } from '../ui'
@@ -24,22 +25,22 @@ export function Fichas() {
 
   return (
     <>
-      <Head title="Fichas" sub="Cada idea que sacas de un paper, con su fuente y página. Nunca más “¿de dónde saqué esto?”." />
+      <Head title={t('Fichas')} sub={t('Cada idea que sacas de un paper, con su fuente y página. Nunca más “¿de dónde saqué esto?”.')} />
       <div className="toolbar">
         <button className="btn primary" onClick={() => open({ kind: 'note' })}>
-          + Ficha
+          {t('+ Ficha')}
         </button>
-        <input type="search" placeholder="Buscar en fichas…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input type="search" placeholder={t('Buscar en fichas…')} value={q} onChange={(e) => setQ(e.target.value)} />
         <select value={fTheme} onChange={(e) => setFTheme(e.target.value)} style={{ maxWidth: 200 }}>
-          <option value="">Todos los temas</option>
-          {s.themes.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
+          <option value="">{t('Todos los temas')}</option>
+          {s.themes.map((th) => (
+            <option key={th.id} value={th.id}>
+              {th.name}
             </option>
           ))}
         </select>
         <select value={fSource} onChange={(e) => setFSource(e.target.value)} style={{ maxWidth: 220 }}>
-          <option value="">Todas las fuentes</option>
+          <option value="">{t('Todas las fuentes')}</option>
           {s.sources
             .filter((x) => notesOf(s, x.id).length)
             .map((x) => (
@@ -49,20 +50,18 @@ export function Fichas() {
             ))}
         </select>
         <label className="meta" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <input type="checkbox" style={{ width: 'auto' }} checked={fUnused} onChange={(e) => setFUnused(e.target.checked)} /> solo sin usar
+          <input type="checkbox" style={{ width: 'auto' }} checked={fUnused} onChange={(e) => setFUnused(e.target.checked)} /> {t('solo sin usar')}
         </label>
       </div>
       {!s.notes.length ? (
         <Empty icon="✍️">
-          <b>Mientras lees, captura.</b> Usa <b>✚ Ficha</b> (abajo a la derecha, o la tecla <span className="kbd">N</span>) cada vez que algo te sirva.
+          {rich('<b>Mientras lees, captura.</b> Usa <b>✚ Ficha</b> (abajo a la derecha, o la tecla <kbd>N</kbd>) cada vez que algo te sirva.')}
           <br />
-          Fuente + página + tu idea. Un minuto.
+          {t('Fuente + página + tu idea. Un minuto.')}
         </Empty>
       ) : (
         <>
-          <p className="meta">
-            {list.length} ficha{list.length !== 1 && 's'}
-          </p>
+          <p className="meta">{tp(list.length, '{n} ficha', '{n} fichas')}</p>
           <div className="grid g2">
             {list.map((n) => (
               <NoteCard key={n.id} n={n} />

@@ -13,8 +13,8 @@ export default defineConfig({
       manifest: {
         name: 'Thesis Brain',
         short_name: 'Thesis Brain',
-        description: 'Tu segundo cerebro para escribir la tesis: fuentes, fichas, matriz de síntesis y borrador.',
-        lang: 'es',
+        description: 'Your thesis second brain: sources, notes, synthesis matrix and a draft that knows its references. ES / EN / SV.',
+        lang: 'en',
         start_url: './',
         scope: './',
         display: 'standalone',
@@ -25,7 +25,7 @@ export default defineConfig({
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
           { src: 'maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
-        shortcuts: [{ name: 'Nueva ficha', short_name: 'Ficha', url: './?new=note#fichas' }],
+        shortcuts: [{ name: 'New note / Nueva ficha / Ny anteckning', short_name: '✚', url: './?new=note#fichas' }],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],

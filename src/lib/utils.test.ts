@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { setLang } from './i18n'
+
+// These tests check the Spanish (source) texts.
+beforeAll(() => setLang('es'))
 import type { Source, State } from '../types'
 import { blank, cite, countCitaQ, exportMd, firstAuthor, normalize, paraSources, parseLine, setSourceStatus } from './utils'
 

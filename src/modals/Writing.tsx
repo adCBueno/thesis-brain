@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { ConfirmButton, CopyButton, Modal, Seg, ThemeChip } from '../components/common'
 import { buildSynthesisPrompt, getAI, paragraphPart, synthesize } from '../lib/ai'
+import { t } from '../lib/i18n'
 import { update, useAppState } from '../lib/store'
 import { cite, downloadText, exportMd, noteUsed, PARA_STATUS, secLabel, sourceById, themeById, uid } from '../lib/utils'
 import type { Note, ParaStatus } from '../types'
@@ -57,7 +58,7 @@ export function ThemeModal({ id }: { id: string }) {
         d.outline.push(sec)
       }
       sec.paras.push({ id: uid(), text, noteIds: picked, sourceIds: [], status: text ? 'draft' : 'idea' })
-      return `Nuevo párrafo en “${sec.title}” a partir del tema ${theme.name}`
+      return t('Nuevo párrafo en “{sec}” a partir del tema {theme}', { sec: sec.title, theme: theme.name })
     })
     close()
     go('borrador')
@@ -66,16 +67,14 @@ export function ThemeModal({ id }: { id: string }) {
   return (
     <Modal wide>
       <h2>
-        <ThemeChip t={theme} /> Escribir sobre este tema
+        <ThemeChip t={theme} /> {t('Escribir sobre este tema')}
       </h2>
-      <p className="meta">
-        {notes.length} fichas de {bySource.length} fuentes. Pregúntate: ¿en qué coinciden? ¿en qué discrepan? ¿qué nadie ha estudiado todavía (tu gap)?
-      </p>
+      <p className="meta">{t('{n} fichas de {s} fuentes. Pregúntate: ¿en qué coinciden? ¿en qué discrepan? ¿qué nadie ha estudiado todavía (tu gap)?', { n: notes.length, s: bySource.length })}</p>
       <div style={{ maxHeight: 320, overflow: 'auto', border: '1px solid var(--line)', borderRadius: 12, padding: '6px 12px' }}>
         {bySource.length ? (
           bySource.map(([sid, arr]) => (
             <div key={sid || '_'} style={{ padding: '6px 0' }}>
-              <div className="cite">{sid ? cite(sourceById(st, sid)) : '💭 Ideas mías'}</div>
+              <div className="cite">{sid ? cite(sourceById(st, sid)) : t('💭 Ideas mías')}</div>
               {arr.map((n) => (
                 <label key={n.id} style={{ display: 'flex', gap: 8, padding: '3px 0', fontSize: 14, cursor: 'pointer' }}>
                   <input
@@ -87,40 +86,44 @@ export function ThemeModal({ id }: { id: string }) {
                   <span>
                     {n.text}
                     {n.mine && <span className="meta"> 💭 {n.mine}</span>}
-                    {noteUsed(st, n.id) && <span className="meta"> · ya usada</span>}
+                    {noteUsed(st, n.id) && <span className="meta"> · {t('ya usada')}</span>}
                   </span>
                 </label>
               ))}
             </div>
           ))
         ) : (
-          <div className="meta">Sin fichas en este tema.</div>
+          <div className="meta">{t('Sin fichas en este tema.')}</div>
         )}
       </div>
 
       <div className="card" style={{ marginTop: 16, boxShadow: 'none' }}>
         <div className="row" style={{ flexWrap: 'wrap' }}>
-          <b style={{ flex: '1 1 200px' }}>✨ Borrador de síntesis con IA</b>
-          <select value={lang} onChange={(e) => setLang(e.target.value as 'en' | 'es')} style={{ flex: '0 0 120px' }}>
+          <b style={{ flex: '1 1 200px' }}>{t('✨ Borrador de síntesis con IA')}</b>
+          <select value={lang} onChange={(e) => setLang(e.target.value as 'en' | 'es')} style={{ flex: '0 0 120px' }} title={t('Idioma del párrafo')}>
             <option value="en">English</option>
             <option value="es">Español</option>
           </select>
-          <CopyButton text={prompt} label="Copiar prompt" className="btn sm" />
+          <CopyButton text={prompt} label={t('Copiar prompt')} className="btn sm" />
           {hasKey && (
             <button className="btn sm primary" style={{ flex: '0 0 auto' }} disabled={ai.state === 'loading' || !picked.length} onClick={generate}>
-              {ai.state === 'loading' ? 'Generando…' : 'Generar'}
+              {ai.state === 'loading' ? t('Generando…') : t('Generar')}
             </button>
           )}
         </div>
         <div className="meta" style={{ marginTop: 6 }}>
-          Usa solo las fichas marcadas, organiza por idea (no autor por autor) y cita (Autor, Año).{' '}
-          {hasKey ? 'Es un punto de partida: reescríbelo con tu voz.' : 'Sin API key: copia el prompt y pégalo en Claude, o configura tu key en ⚙️ Datos y ajustes.'}
+          {t('Usa solo las fichas marcadas, organiza por idea (no autor por autor) y cita (Autor, Año).')}{' '}
+          {hasKey ? t('Es un punto de partida: reescríbelo con tu voz.') : t('Sin API key: copia el prompt y pégalo en Claude, o configura tu key en ⚙️ Datos y ajustes.')}
         </div>
-        {ai.state !== 'idle' && <div className="ai-out">{ai.state === 'loading' ? 'Pensando…' : ai.text}</div>}
-        {ai.state === 'done' && <div className="meta" style={{ marginTop: 6 }}>Si creas el párrafo abajo, se usará este texto (sin los bullets) como borrador.</div>}
+        {ai.state !== 'idle' && <div className="ai-out">{ai.state === 'loading' ? t('Pensando…') : ai.text}</div>}
+        {ai.state === 'done' && (
+          <div className="meta" style={{ marginTop: 6 }}>
+            {t('Si creas el párrafo abajo, se usará este texto (sin los bullets) como borrador.')}
+          </div>
+        )}
       </div>
 
-      <label className="f">Convertir en párrafo dentro de…</label>
+      <label className="f">{t('Convertir en párrafo dentro de…')}</label>
       <div className="row" style={{ flexWrap: 'wrap' }}>
         <select value={section} onChange={(e) => setSection(e.target.value)} style={{ flex: '1 1 220px' }}>
           {st.outline.map((s, i) => (
@@ -128,15 +131,15 @@ export function ThemeModal({ id }: { id: string }) {
               §{i + 1} {s.title}
             </option>
           ))}
-          <option value="__new">+ Nueva sección “{theme.name}”</option>
+          <option value="__new">{t('+ Nueva sección “{name}”', { name: theme.name })}</option>
         </select>
         <button className="btn primary" style={{ flex: '0 0 auto' }} onClick={createParagraph}>
-          Crear párrafo con las fichas marcadas
+          {t('Crear párrafo con las fichas marcadas')}
         </button>
       </div>
       <div className="mfoot">
         <button className="btn ghost" onClick={close}>
-          Cerrar
+          {t('Cerrar')}
         </button>
       </div>
     </Modal>
@@ -147,32 +150,32 @@ export function ThemeModal({ id }: { id: string }) {
 export function ThemesModal() {
   const st = useAppState()
   const { close } = useUI()
-  const [rows, setRows] = useState(() => st.themes.map((t) => ({ ...t })))
+  const [rows, setRows] = useState(() => st.themes.map((th) => ({ ...th })))
   const save = () => {
     update((d) => {
       rows.forEach((r) => {
-        const t = d.themes.find((x) => x.id === r.id)
-        if (t) {
-          t.name = r.name.trim() || t.name
-          t.color = r.color
+        const th = d.themes.find((x) => x.id === r.id)
+        if (th) {
+          th.name = r.name.trim() || th.name
+          th.color = r.color
         }
       })
-      return 'Editaste los temas'
+      return t('Editaste los temas')
     })
     close()
   }
   const remove = (id: string) => {
     update((d) => {
-      d.themes = d.themes.filter((t) => t.id !== id)
+      d.themes = d.themes.filter((th) => th.id !== id)
       d.notes.forEach((n) => (n.themeIds = n.themeIds.filter((x) => x !== id)))
       d.sources.forEach((s) => (s.themeIds = s.themeIds.filter((x) => x !== id)))
-      return 'Eliminaste un tema'
+      return t('Eliminaste un tema')
     })
     setRows(rows.filter((r) => r.id !== id))
   }
   return (
     <Modal>
-      <h2>Editar temas</h2>
+      <h2>{t('Editar temas')}</h2>
       <div className="list">
         {rows.length ? (
           rows.map((r, i) => (
@@ -180,7 +183,7 @@ export function ThemesModal() {
               <input type="color" value={r.color} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, color: e.target.value } : x)))} style={{ flex: '0 0 46px', padding: 2, height: 38 }} />
               <input value={r.name} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
               <span className="meta" style={{ flex: '0 0 auto' }}>
-                {st.notes.filter((n) => n.themeIds.includes(r.id)).length} fichas
+                {t('{n} fichas', { n: st.notes.filter((n) => n.themeIds.includes(r.id)).length })}
               </span>
               <span style={{ flex: '0 0 auto' }}>
                 <ConfirmButton className="btn sm ghost danger" onConfirm={() => remove(r.id)}>
@@ -190,15 +193,15 @@ export function ThemesModal() {
             </div>
           ))
         ) : (
-          <div className="meta">Aún no hay temas.</div>
+          <div className="meta">{t('Aún no hay temas.')}</div>
         )}
       </div>
       <div className="mfoot">
         <button className="btn ghost" onClick={close}>
-          Cancelar
+          {t('Cancelar')}
         </button>
         <button className="btn primary" onClick={save}>
-          Guardar
+          {t('Guardar')}
         </button>
       </div>
     </Modal>
@@ -214,48 +217,48 @@ export function SectionModal({ i }: { i?: number }) {
   const [note, setNote] = useState(existing?.note ?? '')
   const [err, setErr] = useState(false)
   const save = () => {
-    const t = title.trim()
-    if (!t) {
+    const name = title.trim()
+    if (!name) {
       setErr(true)
       return
     }
     update((d) => {
       if (existing) {
-        Object.assign(d.outline[i!], { title: t, note: note.trim() })
-        return `Editaste la sección ${t}`
+        Object.assign(d.outline[i!], { title: name, note: note.trim() })
+        return t('Editaste la sección {name}', { name })
       }
-      d.outline.push({ id: uid(), title: t, note: note.trim(), paras: [] })
-      return `Nueva sección: ${t}`
+      d.outline.push({ id: uid(), title: name, note: note.trim(), paras: [] })
+      return t('Nueva sección: {name}', { name })
     })
     close()
   }
   return (
     <Modal>
-      <h2>{existing ? 'Editar sección' : 'Nueva sección'}</h2>
-      <label className="f">Título</label>
-      <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej: Related Work" style={err ? { borderColor: '#c0392b' } : undefined} />
-      <label className="f">🎯 ¿Qué tiene que lograr esta sección? (opcional)</label>
-      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ej: mostrar que nadie ha evaluado X en contexto Y" />
+      <h2>{existing ? t('Editar sección') : t('Nueva sección')}</h2>
+      <label className="f">{t('Título')}</label>
+      <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('Ej: Related Work')} style={err ? { borderColor: '#c0392b' } : undefined} />
+      <label className="f">{t('🎯 ¿Qué tiene que lograr esta sección? (opcional)')}</label>
+      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Ej: mostrar que nadie ha evaluado X en contexto Y')} />
       <div className="mfoot">
         {existing && (
           <ConfirmButton
             onConfirm={() => {
               update((d) => {
                 d.outline.splice(i!, 1)
-                return `Eliminaste la sección ${existing.title}`
+                return t('Eliminaste la sección {name}', { name: existing.title })
               })
               close()
             }}
           >
-            Eliminar sección
+            {t('Eliminar sección')}
           </ConfirmButton>
         )}
         <span className="sp" />
         <button className="btn ghost" onClick={close}>
-          Cancelar
+          {t('Cancelar')}
         </button>
         <button className="btn primary" onClick={save}>
-          Guardar
+          {t('Guardar')}
         </button>
       </div>
     </Modal>
@@ -281,7 +284,7 @@ export function ParaModal({ si, pi }: { si: number; pi?: number }) {
   const notes = st.notes
     .slice()
     .sort((a, b) => Number(initial.current.includes(b.id)) - Number(initial.current.includes(a.id)) || b.created - a.created)
-    .filter((n) => !ql || [n.text, n.mine, cite(sourceById(st, n.sourceId)), ...n.themeIds.map((t) => themeById(st, t)?.name || '')].join(' ').toLowerCase().includes(ql))
+    .filter((n) => !ql || [n.text, n.mine, cite(sourceById(st, n.sourceId)), ...n.themeIds.map((x) => themeById(st, x)?.name || '')].join(' ').toLowerCase().includes(ql))
 
   const save = () => {
     update((d) => {
@@ -289,10 +292,10 @@ export function ParaModal({ si, pi }: { si: number; pi?: number }) {
       const obj = { text: text.trim(), status, noteIds, sourceIds }
       if (existing) {
         Object.assign(s.paras[pi!], obj)
-        return `Editaste ${secLabel(si, pi)} de “${s.title}”`
+        return t('Editaste {p} de “{sec}”', { p: secLabel(si, pi), sec: s.title })
       }
       s.paras.push({ id: uid(), ...obj })
-      return `Nuevo párrafo en “${s.title}”`
+      return t('Nuevo párrafo en “{sec}”', { sec: s.title })
     })
     close()
   }
@@ -300,14 +303,14 @@ export function ParaModal({ si, pi }: { si: number; pi?: number }) {
   return (
     <Modal wide>
       <h2>
-        §{si + 1} {sec.title} · {existing ? `¶${pi! + 1}` : 'nuevo párrafo'}
+        §{si + 1} {sec.title} · {existing ? `¶${pi! + 1}` : t('nuevo párrafo')}
       </h2>
-      <label className="f">Texto (o la idea principal / topic sentence)</label>
-      <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} style={{ minHeight: 170 }} placeholder="Empieza por la idea central del párrafo. Escribir feo está permitido." />
-      <label className="f">Estado</label>
-      <Seg<ParaStatus> options={(Object.keys(PARA_STATUS) as ParaStatus[]).map((k) => [k, PARA_STATUS[k][0]])} value={status} onChange={setStatus} />
-      <label className="f">Fichas que respaldan este párrafo</label>
-      <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrar fichas…" style={{ marginBottom: 6 }} />
+      <label className="f">{t('Texto (o la idea principal / topic sentence)')}</label>
+      <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} style={{ minHeight: 170 }} placeholder={t('Empieza por la idea central del párrafo. Escribir feo está permitido.')} />
+      <label className="f">{t('Estado')}</label>
+      <Seg<ParaStatus> options={(Object.keys(PARA_STATUS) as ParaStatus[]).map((x) => [x, t(PARA_STATUS[x][0])])} value={status} onChange={setStatus} />
+      <label className="f">{t('Fichas que respaldan este párrafo')}</label>
+      <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Filtrar fichas…')} style={{ marginBottom: 6 }} />
       <div className="pick-list">
         {notes.length ? (
           notes.map((n) => (
@@ -320,11 +323,11 @@ export function ParaModal({ si, pi }: { si: number; pi?: number }) {
           ))
         ) : (
           <div className="meta" style={{ padding: 10 }}>
-            {st.notes.length ? 'Ninguna ficha coincide.' : 'Aún no hay fichas.'}
+            {st.notes.length ? t('Ninguna ficha coincide.') : t('Aún no hay fichas.')}
           </div>
         )}
       </div>
-      <label className="f">Otras fuentes citadas (sin ficha)</label>
+      <label className="f">{t('Otras fuentes citadas (sin ficha)')}</label>
       <div>
         {st.sources
           .filter((s) => s.status !== 'dropped' && s.status !== 'inbox')
@@ -344,20 +347,20 @@ export function ParaModal({ si, pi }: { si: number; pi?: number }) {
             onConfirm={() => {
               update((d) => {
                 d.outline[si].paras.splice(pi!, 1)
-                return 'Eliminaste un párrafo'
+                return t('Eliminaste un párrafo')
               })
               close()
             }}
           >
-            Eliminar
+            {t('Eliminar')}
           </ConfirmButton>
         )}
         <span className="sp" />
         <button className="btn ghost" onClick={close}>
-          Cancelar
+          {t('Cancelar')}
         </button>
         <button className="btn primary" onClick={save}>
-          Guardar
+          {t('Guardar')}
         </button>
       </div>
     </Modal>
@@ -371,15 +374,15 @@ export function ExportModal() {
   const md = exportMd(st)
   return (
     <Modal wide>
-      <h2>📤 Exportar borrador</h2>
-      <p className="meta">Markdown con las fuentes de cada párrafo y una lista de referencias simple. Pégalo en Overleaf, Word o Docs, y ajusta el estilo de citas que pida tu universidad.</p>
+      <h2>{t('📤 Exportar borrador')}</h2>
+      <p className="meta">{t('Markdown con las fuentes de cada párrafo y una lista de referencias simple. Pégalo en Overleaf, Word o Docs, y ajusta el estilo de citas que pida tu universidad.')}</p>
       <textarea readOnly value={md} style={{ minHeight: 320, font: '13px ui-monospace,monospace' }} />
       <div className="mfoot">
         <button className="btn ghost" onClick={close}>
-          Cerrar
+          {t('Cerrar')}
         </button>
         <button className="btn" onClick={() => downloadText('thesis-draft.md', md, 'text/markdown')}>
-          Descargar .md
+          {t('Descargar .md')}
         </button>
         <CopyButton text={md} />
       </div>

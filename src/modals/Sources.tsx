@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NoteCard } from '../components/Cards'
 import { ConfirmButton, Modal, ThemePicker } from '../components/common'
+import { k, t } from '../lib/i18n'
 import { update, useAppState } from '../lib/store'
 import { cite, notesOf, parasUsing, parseLine, secLabel, setSourceStatus, STATUS, uid } from '../lib/utils'
 import type { Source, Status } from '../types'
@@ -10,13 +11,15 @@ function newSource(): Source {
   return { id: uid(), title: '', authors: '', year: '', url: '', kind: 'paper', status: 'toread', why: '', priority: 2, themeIds: [], added: Date.now() }
 }
 
+const MARK: Record<string, string> = { reading: k('👀 Marcar leyendo'), read: k('✅ Marcar leído'), done: k('🧩 Marcar sintetizado') }
+
 export function SourceModal({ id }: { id?: string }) {
   const st = useAppState()
   const { open, close } = useUI()
   const existing = id ? st.sources.find((x) => x.id === id) : undefined
   const [f, setF] = useState<Source>(() => (existing ? { ...existing } : newSource()))
   const [err, setErr] = useState(false)
-  const set = <K extends keyof Source>(k: K, v: Source[K]) => setF((p) => ({ ...p, [k]: v }))
+  const set = <K extends keyof Source>(key: K, v: Source[K]) => setF((p) => ({ ...p, [key]: v }))
 
   // The source was deleted while this modal was open.
   if (id && !existing) return null
@@ -27,16 +30,16 @@ export function SourceModal({ id }: { id?: string }) {
       return
     }
     update((d) => {
-      let t = d.sources.find((x) => x.id === f.id)
-      const isNew = !t
-      if (!t) {
-        t = { ...f, status: 'toread' }
-        d.sources.unshift(t)
+      let x = d.sources.find((y) => y.id === f.id)
+      const isNew = !x
+      if (!x) {
+        x = { ...f, status: 'toread' }
+        d.sources.unshift(x)
       }
       const { status, startedAt: _s, readAt: _r, ...rest } = f
-      Object.assign(t, { ...rest, title: f.title.trim(), authors: f.authors.trim(), year: f.year.trim(), url: f.url.trim(), why: f.why.trim() })
-      const msg = setSourceStatus(t, statusOverride || status)
-      return msg || (isNew ? `Añadiste ${cite(t)}` : `Editaste ${cite(t)}`)
+      Object.assign(x, { ...rest, title: f.title.trim(), authors: f.authors.trim(), year: f.year.trim(), url: f.url.trim(), why: f.why.trim() })
+      const msg = setSourceStatus(x, statusOverride || status)
+      return msg || (isNew ? t('Añadiste {s}', { s: cite(x) }) : t('Editaste {s}', { s: cite(x) }))
     })
     close()
   }
@@ -47,78 +50,78 @@ export function SourceModal({ id }: { id?: string }) {
   return (
     <Modal>
       <div className="row">
-        <h2 style={{ margin: 0 }}>{existing ? <span className="cite">{cite(existing)}</span> : 'Nueva fuente'}</h2>
+        <h2 style={{ margin: 0 }}>{existing ? <span className="cite">{cite(existing)}</span> : t('Nueva fuente')}</h2>
         {existing?.url && (
           <a href={existing.url} target="_blank" rel="noopener noreferrer" className="btn sm" style={{ flex: '0 0 auto' }}>
-            Abrir ↗
+            {t('Abrir ↗')}
           </a>
         )}
       </div>
       {existing && (
         <div className="toolbar" style={{ margin: '12px 0 0' }}>
           {(['reading', 'read', 'done'] as Status[])
-            .filter((k) => k !== existing.status)
-            .map((k) => (
-              <button key={k} className="btn sm" onClick={() => save(k)}>
-                {STATUS[k][0]} Marcar {STATUS[k][1].toLowerCase()}
+            .filter((s) => s !== existing.status)
+            .map((s) => (
+              <button key={s} className="btn sm" onClick={() => save(s)}>
+                {t(MARK[s])}
               </button>
             ))}
         </div>
       )}
-      <label className="f">Título</label>
+      <label className="f">{t('Título')}</label>
       <input value={f.title} onChange={(e) => set('title', e.target.value)} autoFocus={!existing} style={err ? { borderColor: '#c0392b' } : undefined} />
-      {err && <div className="err">El título es obligatorio.</div>}
+      {err && <div className="err">{t('El título es obligatorio.')}</div>}
       <div className="row">
         <div>
-          <label className="f">Autores</label>
+          <label className="f">{t('Autores')}</label>
           <input value={f.authors} onChange={(e) => set('authors', e.target.value)} placeholder="Smith, J.; Doe, A." />
         </div>
         <div style={{ flex: '0 0 100px' }}>
-          <label className="f">Año</label>
+          <label className="f">{t('Año')}</label>
           <input value={f.year} onChange={(e) => set('year', e.target.value)} />
         </div>
       </div>
-      <label className="f">Link</label>
+      <label className="f">{t('Link')}</label>
       <input value={f.url} onChange={(e) => set('url', e.target.value)} placeholder="https://…" />
       <div className="row">
         <div>
-          <label className="f">Estado</label>
+          <label className="f">{t('Estado')}</label>
           <select value={f.status} onChange={(e) => set('status', e.target.value as Status)}>
-            {(Object.keys(STATUS) as Status[]).map((k) => (
-              <option key={k} value={k}>
-                {STATUS[k][0]} {STATUS[k][1]}
+            {(Object.keys(STATUS) as Status[]).map((s) => (
+              <option key={s} value={s}>
+                {STATUS[s][0]} {t(STATUS[s][1])}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="f">Tipo</label>
+          <label className="f">{t('Tipo')}</label>
           <select value={f.kind} onChange={(e) => set('kind', e.target.value as Source['kind'])}>
-            <option value="paper">📄 Paper</option>
-            <option value="web">🌐 Web / recurso</option>
+            <option value="paper">{t('📄 Paper')}</option>
+            <option value="web">{t('🌐 Web / recurso')}</option>
           </select>
         </div>
         <div>
-          <label className="f">Prioridad</label>
+          <label className="f">{t('Prioridad')}</label>
           <select value={f.priority} onChange={(e) => set('priority', Number(e.target.value))}>
-            <option value={3}>🔥 Alta</option>
-            <option value={2}>Media</option>
-            <option value={1}>Baja</option>
+            <option value={3}>{t('🔥 Alta')}</option>
+            <option value={2}>{t('Media')}</option>
+            <option value={1}>{t('Baja')}</option>
           </select>
         </div>
       </div>
-      <label className="f">¿Por qué me importa?</label>
-      <input value={f.why} onChange={(e) => set('why', e.target.value)} placeholder="Ej: define el framework que voy a usar en la metodología" />
-      <label className="f">Temas</label>
+      <label className="f">{t('¿Por qué me importa?')}</label>
+      <input value={f.why} onChange={(e) => set('why', e.target.value)} placeholder={t('Ej: define el framework que voy a usar en la metodología')} />
+      <label className="f">{t('Temas')}</label>
       <ThemePicker value={f.themeIds} onChange={(v) => set('themeIds', v)} />
 
       {existing && (
         <>
           <div className="section-h">
-            <h2>🗂️ Fichas</h2>
+            <h2>{t('🗂️ Fichas')}</h2>
             <span className="count">{notes.length}</span>
             <button className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => open({ kind: 'note', sourceId: existing.id })}>
-              + Ficha
+              {t('+ Ficha')}
             </button>
           </div>
           {notes.length ? (
@@ -128,19 +131,19 @@ export function SourceModal({ id }: { id?: string }) {
               ))}
             </div>
           ) : (
-            <div className="meta">Sin fichas aún.</div>
+            <div className="meta">{t('Sin fichas aún.')}</div>
           )}
           <div className="section-h">
-            <h2>✍️ Usada en el borrador</h2>
+            <h2>{t('✍️ Usada en el borrador')}</h2>
           </div>
           {used.length ? (
             used.map((x) => (
               <div key={x.si + '-' + x.pi} className="meta">
-                • <b>{secLabel(x.si, x.pi)}</b> {x.title}: “{(x.text || '(vacío)').slice(0, 90)}…”
+                • <b>{secLabel(x.si, x.pi)}</b> {x.title}: “{(x.text || t('(vacío)')).slice(0, 90)}…”
               </div>
             ))
           ) : (
-            <div className="meta">Todavía en ningún párrafo.</div>
+            <div className="meta">{t('Todavía en ningún párrafo.')}</div>
           )}
         </>
       )}
@@ -159,20 +162,20 @@ export function SourceModal({ id }: { id?: string }) {
                   }),
                 )
                 d.sources = d.sources.filter((x) => x.id !== existing.id)
-                return `Eliminaste ${cite(existing)}`
+                return t('Eliminaste {s}', { s: cite(existing) })
               })
               close()
             }}
           >
-            Eliminar
+            {t('Eliminar')}
           </ConfirmButton>
         )}
         <span className="sp" />
         <button className="btn ghost" onClick={close}>
-          Cancelar
+          {t('Cancelar')}
         </button>
         <button className="btn primary" onClick={() => save()}>
-          Guardar
+          {t('Guardar')}
         </button>
       </div>
     </Modal>
@@ -194,17 +197,18 @@ export function BulkModal() {
         d.sources.push(s)
         added++
       })
-      return added ? `Vaciaste ${added} pestaña${added !== 1 ? 's' : ''} a la bandeja 🧹` : null
+      return added ? (added === 1 ? t('Vaciaste 1 pestaña a la bandeja 🧹') : t('Vaciaste {n} pestañas a la bandeja 🧹', { n: added })) : null
     })
     close()
     go('fuentes')
   }
   return (
     <Modal>
-      <h2>🧹 Vaciar tabs</h2>
+      <h2>{t('🧹 Vaciar tabs')}</h2>
       <p className="meta">
-        Pega links o títulos, uno por línea. Truco: en Chrome selecciona todas las pestañas (clic en la primera, Shift+clic en la última) y usa una extensión tipo “Copy All URLs”. Los duplicados se
-        ignoran.
+        {t(
+          'Pega links o títulos, uno por línea. Truco: en Chrome selecciona todas las pestañas (clic en la primera, Shift+clic en la última) y usa una extensión tipo “Copy All URLs”. Los duplicados se ignoran.',
+        )}
       </p>
       <textarea
         autoFocus
@@ -215,10 +219,10 @@ export function BulkModal() {
       />
       <div className="mfoot">
         <button className="btn ghost" onClick={close}>
-          Cancelar
+          {t('Cancelar')}
         </button>
         <button className="btn primary" onClick={save}>
-          Añadir a la bandeja
+          {t('Añadir a la bandeja')}
         </button>
       </div>
     </Modal>
@@ -231,7 +235,7 @@ export function DroppedModal() {
   const list = st.sources.filter((x) => x.status === 'dropped')
   return (
     <Modal>
-      <h2>🗑️ Descartadas</h2>
+      <h2>{t('🗑️ Descartadas')}</h2>
       <div className="list">
         {list.length ? (
           list.map((x) => (
@@ -246,21 +250,21 @@ export function DroppedModal() {
                   update((d) => {
                     const s = d.sources.find((y) => y.id === x.id)!
                     s.status = 'inbox'
-                    return `Recuperaste ${cite(s)}`
+                    return t('Recuperaste {s}', { s: cite(s) })
                   })
                 }
               >
-                Recuperar
+                {t('Recuperar')}
               </button>
             </div>
           ))
         ) : (
-          <div className="meta">Nada por aquí.</div>
+          <div className="meta">{t('Nada por aquí.')}</div>
         )}
       </div>
       <div className="mfoot">
         <button className="btn ghost" onClick={close}>
-          Cerrar
+          {t('Cerrar')}
         </button>
       </div>
     </Modal>

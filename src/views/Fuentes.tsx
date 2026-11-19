@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { SourceCard } from '../components/Cards'
 import { Empty, Head, usePersisted } from '../components/common'
+import { rich, t, tp } from '../lib/i18n'
 import { update, useAppState } from '../lib/store'
 import { cite, setSourceStatus, STATUS } from '../lib/utils'
 import type { Source, Status } from '../types'
@@ -17,7 +18,7 @@ function InboxRow({ s }: { s: Source }) {
       x.why = why.trim()
       x.priority = pri
       x.status = 'toread'
-      return `Clasificaste ${cite(x)} → Por leer`
+      return t('Clasificaste {s} → Por leer', { s: cite(x) })
     })
   const drop = () => update((d) => setSourceStatus(d.sources.find((y) => y.id === s.id)!, 'dropped'))
   return (
@@ -30,27 +31,22 @@ function InboxRow({ s }: { s: Source }) {
         ) : (
           s.title
         )}
-        <div className="meta">{s.kind === 'paper' ? '📄 paper' : '🌐 web'}</div>
+        <div className="meta">{s.kind === 'paper' ? t('📄 paper') : t('🌐 web')}</div>
       </div>
-      <input
-        value={why}
-        onChange={(e) => setWhy(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && triage()}
-        placeholder="¿Por qué la abrí? ¿Para qué me sirve?"
-      />
+      <input value={why} onChange={(e) => setWhy(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && triage()} placeholder={t('¿Por qué la abrí? ¿Para qué me sirve?')} />
       <select value={pri} onChange={(e) => setPri(Number(e.target.value))}>
-        <option value={3}>🔥 Alta</option>
-        <option value={2}>Media</option>
-        <option value={1}>Baja</option>
+        <option value={3}>{t('🔥 Alta')}</option>
+        <option value={2}>{t('Media')}</option>
+        <option value={1}>{t('Baja')}</option>
       </select>
       <div className="row" style={{ gap: 4 }}>
         <button className="btn sm primary" onClick={triage}>
-          → Por leer
+          {t('→ Por leer')}
         </button>
-        <button className="btn sm ghost" title="Editar detalles" onClick={() => open({ kind: 'source', id: s.id })}>
+        <button className="btn sm ghost" title={t('Editar detalles')} onClick={() => open({ kind: 'source', id: s.id })}>
           ✎
         </button>
-        <button className="btn sm ghost" title="Descartar" onClick={drop}>
+        <button className="btn sm ghost" title={t('Descartar')} onClick={drop}>
           🗑️
         </button>
       </div>
@@ -71,25 +67,25 @@ export function Fuentes() {
 
   return (
     <>
-      <Head title="Fuentes" sub="Todo lo que tenías en pestañas, en un solo sitio. Ciérralas sin miedo." />
+      <Head title={t('Fuentes')} sub={t('Todo lo que tenías en pestañas, en un solo sitio. Ciérralas sin miedo.')} />
       <div className="toolbar">
         <button className="btn primary" onClick={() => open({ kind: 'bulk' })}>
-          🧹 Vaciar tabs (pegar varios)
+          {t('🧹 Vaciar tabs (pegar varios)')}
         </button>
         <button className="btn" onClick={() => open({ kind: 'source' })}>
-          + Fuente
+          {t('+ Fuente')}
         </button>
-        <input type="search" placeholder="Buscar…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input type="search" placeholder={t('Buscar…')} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {!s.sources.length ? (
         <Empty icon="🗂️">
-          <b>Empieza aquí:</b> copia los links (o títulos) de todas tus pestañas y pégalos juntos.
+          {rich('<b>Empieza aquí:</b> copia los links (o títulos) de todas tus pestañas y pégalos juntos.')}
           <br />
-          Después los clasificas de a poco.
+          {t('Después los clasificas de a poco.')}
           <div style={{ marginTop: 14 }}>
             <button className="btn primary" onClick={() => open({ kind: 'bulk' })}>
-              Pegar mis tabs
+              {t('Pegar mis tabs')}
             </button>
           </div>
         </Empty>
@@ -98,10 +94,10 @@ export function Fuentes() {
           {inbox.length > 0 && (
             <div className="card" style={{ marginBottom: 8 }}>
               <h2>
-                📥 Bandeja <span className="count">{inbox.length}</span>
+                {t('📥 Bandeja')} <span className="count">{inbox.length}</span>
               </h2>
               <p className="meta" style={{ margin: '0 0 6px' }}>
-                Por cada una: ¿por qué la abriste? Una línea basta. Luego mándala a “Por leer” o descártala sin culpa.
+                {t('Por cada una: ¿por qué la abriste? Una línea basta. Luego mándala a “Por leer” o descártala sin culpa.')}
               </p>
               {inbox.map((x) => (
                 <InboxRow key={x.id} s={x} />
@@ -116,7 +112,7 @@ export function Fuentes() {
               <div key={g}>
                 <div className="section-h">
                   <h2>
-                    {STATUS[g][0]} {STATUS[g][1]}
+                    {STATUS[g][0]} {t(STATUS[g][1])}
                   </h2>
                   <span className="count">{list.length}</span>
                 </div>
@@ -130,9 +126,9 @@ export function Fuentes() {
           })}
           {dropped > 0 && (
             <p className="meta" style={{ marginTop: 20 }}>
-              🗑️ {dropped} descartada{dropped > 1 && 's'}{' '}
+              🗑️ {tp(dropped, '{n} descartada', '{n} descartadas')}{' '}
               <button className="btn sm ghost" onClick={() => open({ kind: 'dropped' })}>
-                ver
+                {t('ver')}
               </button>
             </p>
           )}

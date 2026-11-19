@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Empty, Head, Seg, usePersisted } from '../components/common'
+import { rich, t, tp } from '../lib/i18n'
 import { update, useAppState } from '../lib/store'
 import { cite, isoDate, relDay, sourceById, todoSort, uid } from '../lib/utils'
 import type { Todo, TodoKind } from '../types'
@@ -9,32 +10,41 @@ type Filter = 'all' | TodoKind
 
 export function toggleTodo(id: string) {
   update((d) => {
-    const t = d.todos.find((x) => x.id === id)
-    if (!t) return
-    t.done = !t.done
-    t.doneAt = t.done ? Date.now() : undefined
-    return t.done ? `✓ ${t.text.slice(0, 70)}` : null
+    const item = d.todos.find((x) => x.id === id)
+    if (!item) return
+    item.done = !item.done
+    item.doneAt = item.done ? Date.now() : undefined
+    return item.done ? `✓ ${item.text.slice(0, 70)}` : null
   })
 }
 
-export function TodoRow({ t }: { t: Todo }) {
+const short = (s: string) => `${s.slice(0, 60)}${s.length > 60 ? '…' : ''}`
+export const todoLogText = (kind: TodoKind, text: string) => (kind === 'idea' ? t('💡 Idea: “{text}”', { text: short(text) }) : t('✅ Pendiente: “{text}”', { text: short(text) }))
+
+export function TodoRow({ t: todo }: { t: Todo }) {
   const s = useAppState()
   const { open } = useUI()
   const today = isoDate()
-  const src = sourceById(s, t.sourceId)
-  const si = s.outline.findIndex((x) => x.id === t.sectionId)
-  const overdue = !t.done && t.due && t.due < today
+  const src = sourceById(s, todo.sourceId)
+  const si = s.outline.findIndex((x) => x.id === todo.sectionId)
+  const overdue = !todo.done && todo.due && todo.due < today
   return (
-    <div className={'todo-row' + (t.done ? ' done' : '')}>
-      <input type="checkbox" className="todo-check" checked={t.done} onChange={() => toggleTodo(t.id)} title={t.done ? 'Marcar como pendiente' : 'Marcar como hecho'} />
-      <div className="todo-body" onClick={() => open({ kind: 'todo', id: t.id })}>
+    <div className={'todo-row' + (todo.done ? ' done' : '')}>
+      <input
+        type="checkbox"
+        className="todo-check"
+        checked={todo.done}
+        onChange={() => toggleTodo(todo.id)}
+        title={todo.done ? t('Marcar como pendiente') : t('Marcar como hecho')}
+      />
+      <div className="todo-body" onClick={() => open({ kind: 'todo', id: todo.id })}>
         <div className="todo-text">
-          {t.kind === 'idea' && '💡 '}
-          {t.text}
+          {todo.kind === 'idea' && '💡 '}
+          {todo.text}
         </div>
-        {(t.due || src || si >= 0) && (
+        {(todo.due || src || si >= 0) && (
           <div className="meta">
-            {t.due && <span className={overdue ? 'overdue' : t.due === today && !t.done ? 'due-today' : ''}>📅 {relDay(t.due)}</span>}
+            {todo.due && <span className={overdue ? 'overdue' : todo.due === today && !todo.done ? 'due-today' : ''}>📅 {relDay(todo.due)}</span>}
             {src && <span> · 📄 {cite(src)}</span>}
             {si >= 0 && (
               <span>
@@ -45,24 +55,24 @@ export function TodoRow({ t }: { t: Todo }) {
           </div>
         )}
       </div>
-      {!t.done && (
+      {!todo.done && (
         <div className="todo-actions">
-          {t.kind === 'idea' && (
+          {todo.kind === 'idea' && (
             <>
-              <button className="btn sm ghost" title="Convertir en ficha" onClick={() => open({ kind: 'note', text: t.text, sourceId: t.sourceId || undefined, fromTodo: t.id })}>
-                → Ficha
+              <button className="btn sm ghost" title={t('Convertir en ficha')} onClick={() => open({ kind: 'note', text: todo.text, sourceId: todo.sourceId || undefined, fromTodo: todo.id })}>
+                {t('→ Ficha')}
               </button>
-              <button className="btn sm ghost" title="Convertir en pendiente" onClick={() => update((d) => void (d.todos.find((x) => x.id === t.id)!.kind = 'todo'))}>
-                → Pendiente
+              <button className="btn sm ghost" title={t('Convertir en pendiente')} onClick={() => update((d) => void (d.todos.find((x) => x.id === todo.id)!.kind = 'todo'))}>
+                {t('→ Pendiente')}
               </button>
             </>
           )}
           <button
-            className={'btn sm ghost star' + (t.important ? ' on' : '')}
-            title={t.important ? 'Quitar importante' : 'Marcar como importante'}
-            onClick={() => update((d) => void (d.todos.find((x) => x.id === t.id)!.important = !t.important))}
+            className={'btn sm ghost star' + (todo.important ? ' on' : '')}
+            title={todo.important ? t('Quitar importante') : t('Marcar como importante')}
+            onClick={() => update((d) => void (d.todos.find((x) => x.id === todo.id)!.important = !todo.important))}
           >
-            {t.important ? '⭐' : '☆'}
+            {todo.important ? '⭐' : '☆'}
           </button>
         </div>
       )}
@@ -78,30 +88,30 @@ export function Pendientes() {
   const [showDone, setShowDone] = useState(false)
 
   const add = () => {
-    const t = text.trim()
-    if (!t) return
+    const value = text.trim()
+    if (!value) return
     update(
-      (d) =>
-        void d.todos.push({ id: uid(), text: t, kind, done: false, important: false, due: '', sourceId: '', sectionId: '', created: Date.now() }),
-      `${kind === 'idea' ? '💡 Idea' : '✅ Pendiente'}: “${t.slice(0, 60)}${t.length > 60 ? '…' : ''}”`,
+      (d) => void d.todos.push({ id: uid(), text: value, kind, done: false, important: false, due: '', sourceId: '', sectionId: '', created: Date.now() }),
+      todoLogText(kind, value),
     )
     setText('')
   }
 
-  const list = s.todos.filter((t) => filter === 'all' || t.kind === filter).sort(todoSort)
-  const open = list.filter((t) => !t.done)
-  const done = list.filter((t) => t.done)
+  const list = s.todos.filter((x) => filter === 'all' || x.kind === filter).sort(todoSort)
+  const openItems = list.filter((x) => !x.done)
+  const done = list.filter((x) => x.done)
+  const countOpen = (k?: TodoKind) => s.todos.filter((x) => !x.done && (!k || x.kind === k)).length
 
   return (
     <>
-      <Head title="Pendientes" sub="Anota ideas y pendientes al vuelo, sin salir de lo que estás haciendo. Desde cualquier vista: tecla T." />
+      <Head title={t('Pendientes')} sub={t('Anota ideas y pendientes al vuelo, sin salir de lo que estás haciendo. Desde cualquier vista: tecla T.')} />
       <div className="card capture">
         <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
           <div style={{ flex: '0 0 auto' }}>
             <Seg<TodoKind>
               options={[
-                ['todo', '✅ Pendiente'],
-                ['idea', '💡 Idea'],
+                ['todo', t('✅ Pendiente')],
+                ['idea', t('💡 Idea')],
               ]}
               value={kind}
               onChange={setKind}
@@ -117,11 +127,11 @@ export function Pendientes() {
                 add()
               }
             }}
-            placeholder={kind === 'idea' ? 'Se me ocurrió que… (Enter para guardar)' : 'Tengo que… (Enter para guardar)'}
+            placeholder={kind === 'idea' ? t('Se me ocurrió que… (Enter para guardar)') : t('Tengo que… (Enter para guardar)')}
             style={{ flex: '1 1 300px' }}
           />
           <button className="btn primary" style={{ flex: '0 0 auto' }} onClick={add} disabled={!text.trim()}>
-            Añadir
+            {t('Añadir')}
           </button>
         </div>
       </div>
@@ -129,9 +139,9 @@ export function Pendientes() {
       <div className="toolbar" style={{ marginTop: 16 }}>
         <Seg<Filter>
           options={[
-            ['all', `Todo (${s.todos.filter((t) => !t.done).length})`],
-            ['todo', `✅ Pendientes (${s.todos.filter((t) => !t.done && t.kind === 'todo').length})`],
-            ['idea', `💡 Ideas (${s.todos.filter((t) => !t.done && t.kind === 'idea').length})`],
+            ['all', t('Todo ({n})', { n: countOpen() })],
+            ['todo', t('✅ Pendientes ({n})', { n: countOpen('todo') })],
+            ['idea', t('💡 Ideas ({n})', { n: countOpen('idea') })],
           ]}
           value={filter}
           onChange={setFilter}
@@ -140,43 +150,48 @@ export function Pendientes() {
 
       {!s.todos.length ? (
         <Empty icon="📝">
-          <b>Tu libreta de bolsillo.</b> ¿Se te ocurrió algo mientras leías o escribías? Anótalo aquí y sigue, sin perder el hilo.
+          {rich('<b>Tu libreta de bolsillo.</b> ¿Se te ocurrió algo mientras leías o escribías? Anótalo aquí y sigue, sin perder el hilo.')}
           <br />
-          Las ideas después se convierten en fichas con un clic.
+          {t('Las ideas después se convierten en fichas con un clic.')}
         </Empty>
       ) : (
         <>
-          {open.length ? (
+          {openItems.length ? (
             <div className="todo-list">
-              {open.map((t) => (
-                <TodoRow key={t.id} t={t} />
+              {openItems.map((x) => (
+                <TodoRow key={x.id} t={x} />
               ))}
             </div>
           ) : (
             <div className="meta" style={{ padding: '10px 2px' }}>
-              Nada pendiente por aquí. 🎉
+              {t('Nada pendiente por aquí. 🎉')}
             </div>
           )}
           {done.length > 0 && (
             <div style={{ marginTop: 18 }}>
               <div className="row">
                 <button className="btn sm ghost" style={{ flex: '0 0 auto' }} onClick={() => setShowDone(!showDone)}>
-                  {showDone ? '▾' : '▸'} Hechos ({done.length})
+                  {showDone ? '▾' : '▸'} {t('Hechos ({n})', { n: done.length })}
                 </button>
                 {showDone && (
                   <button
                     className="btn sm ghost danger"
                     style={{ flex: '0 0 auto', marginLeft: 'auto' }}
-                    onClick={() => update((d) => void (d.todos = d.todos.filter((t) => !(t.done && (filter === 'all' || t.kind === filter)))), `Limpiaste ${done.length} hechos`)}
+                    onClick={() =>
+                      update(
+                        (d) => void (d.todos = d.todos.filter((x) => !(x.done && (filter === 'all' || x.kind === filter)))),
+                        tp(done.length, 'Limpiaste {n} hecho', 'Limpiaste {n} hechos'),
+                      )
+                    }
                   >
-                    Borrar hechos
+                    {t('Borrar hechos')}
                   </button>
                 )}
               </div>
               {showDone && (
                 <div className="todo-list" style={{ marginTop: 6 }}>
-                  {done.map((t) => (
-                    <TodoRow key={t.id} t={t} />
+                  {done.map((x) => (
+                    <TodoRow key={x.id} t={x} />
                   ))}
                 </div>
               )}

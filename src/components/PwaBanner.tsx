@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { flush } from '../lib/storage'
 
@@ -20,7 +21,7 @@ export function PwaBanner() {
     <div className="toast" role="status">
       {needRefresh ? (
         <>
-          <span>✨ Hay una versión nueva de Thesis Brain.</span>
+          <span>{t('✨ Hay una versión nueva de Thesis Brain.')}</span>
           <button
             className="btn sm primary"
             onClick={async () => {
@@ -28,15 +29,15 @@ export function PwaBanner() {
               await updateServiceWorker(true)
             }}
           >
-            Actualizar
+            {t('Actualizar')}
           </button>
           <button className="btn sm ghost" onClick={() => setNeedRefresh(false)}>
-            Luego
+            {t('Luego')}
           </button>
         </>
       ) : (
         <>
-          <span>✅ Lista para usar sin internet.</span>
+          <span>{t('✅ Lista para usar sin internet.')}</span>
           <button className="btn sm ghost" onClick={() => setOfflineReady(false)}>
             OK
           </button>

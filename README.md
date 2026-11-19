@@ -4,7 +4,7 @@
 
 > Built because I was writing my MSc thesis with 28 papers and 10 resources open, couldn't remember which reference belonged to which paragraph, and kept postponing because it all felt like too much.
 
-UI is in Spanish 🇪🇸 (the draft and AI synthesis can be in English).
+🌍 Available in **English, Español and Svenska** (auto-detected from the browser, switchable anytime).
 
 ## Why
 
@@ -40,6 +40,12 @@ Thesis Brain is a PWA, so it runs in its own window, outside your browser tabs, 
 - **iPhone / iPad:** Share → Add to Home Screen.
 
 When a new version is deployed, the app shows a small "Actualizar" banner instead of reloading while you're typing. Right-click the Dock icon → **Nueva ficha** to jump straight to a new note.
+
+## Languages
+
+The UI is translated into 🇬🇧 English, 🇪🇸 Spanish and 🇸🇪 Swedish. It follows the browser language on first launch; change it from the sidebar or *⚙️ Data & settings*. Dates follow the chosen language. Your own notes and draft are never translated.
+
+i18n is a tiny gettext-style module (`src/lib/i18n.tsx`, no dependencies): the Spanish source text is the key, so code stays readable (`t('Fuentes')`), with `{placeholders}`, plurals (`tp`) and inline `<b>/<kbd>` tags (`rich`). Dictionaries live in `src/locales/`. **A unit test scans the code and fails if any text is missing in any language**, if a translation is left over, or if placeholders don't match. To add a language: copy `src/locales/en.ts`, translate, register it in `LANGS`.
 
 ## Your data (local-first)
 
@@ -90,6 +96,8 @@ src/
     ai.ts              # prompt builder + Anthropic API call
     timer.ts           # focus timer that survives reloads
     pwa.ts             # install prompt handling
+    i18n.tsx           # t() / tp() / rich(), language detection  (+ coverage test)
+  locales/             # en.ts, sv.ts (Spanish is the source language)
   components/          # Nav, cards, shared UI (Modal, ThemePicker, ConfirmButton…)
   views/               # Hoy, Pendientes, Fuentes, Fichas, Matriz, Borrador, Rastro
   modals/              # source, note, paragraph, theme workspace, export, settings…
@@ -104,7 +112,7 @@ The whole state is one serialisable object, so saving it (IndexedDB or a file) i
 - [x] PWA (installable, offline cache)
 - [ ] Desktop app with Tauri (real files on disk, global shortcut)
 - [ ] Word count and per-section progress
-- [ ] English UI (i18n)
+- [x] English and Swedish UI (i18n)
 
 ## License
 

@@ -1,4 +1,5 @@
 import { Empty, Head } from '../components/common'
+import { t } from '../lib/i18n'
 import { useAppState } from '../lib/store'
 import { cite, fmtDate, fmtDay, fmtTime } from '../lib/utils'
 import type { LogEntry } from '../types'
@@ -20,10 +21,10 @@ export function Rastro() {
 
   return (
     <>
-      <Head title="Rastro" sub="El orden en que leíste, anotaste y escribiste. Para cuando no recuerdas “¿qué leí primero?”." />
+      <Head title={t('Rastro')} sub={t('El orden en que leíste, anotaste y escribiste. Para cuando no recuerdas “¿qué leí primero?”.')} />
       {order.length > 0 && (
         <div className="card" style={{ marginBottom: 18 }}>
-          <h2>📖 Orden de lectura</h2>
+          <h2>{t('📖 Orden de lectura')}</h2>
           <ol style={{ margin: 0, paddingLeft: 22 }}>
             {order.map((x) => (
               <li key={x.id} style={{ padding: '3px 0' }}>
@@ -32,8 +33,8 @@ export function Rastro() {
                 </span>{' '}
                 <span className="meta">
                   {x.title.slice(0, 80)}
-                  {x.startedAt && ' · empezado ' + fmtDate(x.startedAt)}
-                  {x.readAt && ' · terminado ' + fmtDate(x.readAt)}
+                  {x.startedAt && ' · ' + t('empezado {d}', { d: fmtDate(x.startedAt) })}
+                  {x.readAt && ' · ' + t('terminado {d}', { d: fmtDate(x.readAt) })}
                 </span>
               </li>
             ))}
@@ -41,7 +42,7 @@ export function Rastro() {
         </div>
       )}
       {!s.log.length ? (
-        <Empty icon="🧭">Aquí irá apareciendo todo lo que hagas, en orden.</Empty>
+        <Empty icon="🧭">{t('Aquí irá apareciendo todo lo que hagas, en orden.')}</Empty>
       ) : (
         days.map((d) => (
           <div key={d.day}>

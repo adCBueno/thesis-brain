@@ -1,16 +1,17 @@
 import { Empty, Head, highlightCitaQ } from '../components/common'
+import { k, rich, t, tp } from '../lib/i18n'
 import { update, useAppState } from '../lib/store'
 import { cite, PARA_STATUS, paraSources, sourceById, uid } from '../lib/utils'
 import { useUI } from '../ui'
 
 const SKELETON: [string, string][] = [
-  ['Introduction', 'Problema, motivación, research questions, contribución'],
-  ['Background & Related Work', 'Conceptos clave y qué se ha hecho; termina en el gap'],
-  ['Research Methodology', 'Cómo respondes cada RQ y por qué así'],
-  ['Results', 'Qué encontraste, sin interpretar todavía'],
-  ['Analysis & Discussion', 'Qué significa, comparado con la literatura'],
-  ['Threats to Validity', 'Limitaciones y cómo las mitigaste'],
-  ['Conclusions & Future Work', 'Respuesta corta a cada RQ y qué sigue'],
+  ['Introduction', k('Problema, motivación, research questions, contribución')],
+  ['Background & Related Work', k('Conceptos clave y qué se ha hecho; termina en el gap')],
+  ['Research Methodology', k('Cómo respondes cada RQ y por qué así')],
+  ['Results', k('Qué encontraste, sin interpretar todavía')],
+  ['Analysis & Discussion', k('Qué significa, comparado con la literatura')],
+  ['Threats to Validity', k('Limitaciones y cómo las mitigaste')],
+  ['Conclusions & Future Work', k('Respuesta corta a cada RQ y qué sigue')],
 ]
 
 function swap<T>(arr: T[], i: number, j: number) {
@@ -24,36 +25,34 @@ export function Borrador() {
   const { open } = useUI()
   return (
     <>
-      <Head title="Borrador" sub="Cada párrafo sabe de qué fichas y papers viene. Clic en una cita para ver de dónde salió." />
+      <Head title={t('Borrador')} sub={t('Cada párrafo sabe de qué fichas y papers viene. Clic en una cita para ver de dónde salió.')} />
       <div className="toolbar">
         <button className="btn primary" onClick={() => open({ kind: 'section' })}>
-          + Sección
+          {t('+ Sección')}
         </button>
         <button className="btn" onClick={() => open({ kind: 'export' })}>
-          📤 Exportar borrador
+          {t('📤 Exportar borrador')}
         </button>
-        <span className="meta">
-          Escribe <b>[CITA?]</b> donde falte una referencia y sigue.
-        </span>
+        <span className="meta">{rich('Escribe <b>[CITA?]</b> donde falte una referencia y sigue.')}</span>
       </div>
 
       {!s.outline.length ? (
         <Empty icon="🧱">
-          <b>Empieza por el esqueleto.</b> Solo títulos; el contenido llega después.
+          {rich('<b>Empieza por el esqueleto.</b> Solo títulos; el contenido llega después.')}
           <div style={{ marginTop: 14 }}>
             <button
               className="btn primary"
               onClick={() =>
                 update((d) => {
-                  SKELETON.forEach(([title, note]) => d.outline.push({ id: uid(), title, note, paras: [] }))
-                  return 'Creaste el esqueleto del borrador 🧱'
+                  SKELETON.forEach(([title, note]) => d.outline.push({ id: uid(), title, note: t(note), paras: [] }))
+                  return t('Creaste el esqueleto del borrador 🧱')
                 })
               }
             >
-              Usar esqueleto típico de tesis de máster
+              {t('Usar esqueleto típico de tesis de máster')}
             </button>{' '}
             <button className="btn" onClick={() => open({ kind: 'section' })}>
-              Crear mi propia sección
+              {t('Crear mi propia sección')}
             </button>
           </div>
         </Empty>
@@ -65,13 +64,13 @@ export function Borrador() {
                 §{si + 1} {sec.title}
               </h2>
               <div style={{ flex: '0 0 auto' }}>
-                <button className="btn sm ghost" title="Subir sección" onClick={() => update((d) => void swap(d.outline, si, si - 1))}>
+                <button className="btn sm ghost" title={t('Subir sección')} onClick={() => update((d) => void swap(d.outline, si, si - 1))}>
                   ↑
                 </button>
-                <button className="btn sm ghost" title="Bajar sección" onClick={() => update((d) => void swap(d.outline, si, si + 1))}>
+                <button className="btn sm ghost" title={t('Bajar sección')} onClick={() => update((d) => void swap(d.outline, si, si + 1))}>
                   ↓
                 </button>
-                <button className="btn sm ghost" title="Editar" onClick={() => open({ kind: 'section', i: si })}>
+                <button className="btn sm ghost" title={t('Editar')} onClick={() => open({ kind: 'section', i: si })}>
                   ✎
                 </button>
               </div>
@@ -86,27 +85,25 @@ export function Borrador() {
                     <div className="pnum">¶{pi + 1}</div>
                     <div>
                       <div className={'ptext' + (p.text ? '' : ' empty-p')} style={{ cursor: 'text' }} onClick={() => open({ kind: 'para', si, pi })}>
-                        {p.text ? highlightCitaQ(p.text) : 'Párrafo vacío: clic para escribir'}
+                        {p.text ? highlightCitaQ(p.text) : t('Párrafo vacío: clic para escribir')}
                       </div>
                       <div style={{ marginTop: 6 }}>
-                        <span className={'badge ' + cls}>{label}</span>{' '}
+                        <span className={'badge ' + cls}>{t(label)}</span>{' '}
                         {sids.map((id) => (
                           <span key={id} className="chip pick" onClick={() => open({ kind: 'source', id })}>
                             📄 {cite(sourceById(s, id))}
                           </span>
                         ))}{' '}
                         {p.noteIds.length > 0 && (
-                          <span className="meta">
-                            {p.noteIds.length} ficha{p.noteIds.length > 1 && 's'}
-                          </span>
+                          <span className="meta">{tp(p.noteIds.length, '{n} ficha', '{n} fichas')}</span>
                         )}
                       </div>
                     </div>
                     <div className="pact">
-                      <button className="btn sm ghost" title="Subir" onClick={() => update((d) => void swap(d.outline[si].paras, pi, pi - 1))}>
+                      <button className="btn sm ghost" title={t('Subir')} onClick={() => update((d) => void swap(d.outline[si].paras, pi, pi - 1))}>
                         ↑
                       </button>
-                      <button className="btn sm ghost" title="Bajar" onClick={() => update((d) => void swap(d.outline[si].paras, pi, pi + 1))}>
+                      <button className="btn sm ghost" title={t('Bajar')} onClick={() => update((d) => void swap(d.outline[si].paras, pi, pi + 1))}>
                         ↓
                       </button>
                     </div>
@@ -115,7 +112,7 @@ export function Borrador() {
               })}
             </div>
             <button className="btn sm" style={{ marginTop: 8 }} onClick={() => open({ kind: 'para', si })}>
-              + Párrafo
+              {t('+ Párrafo')}
             </button>
           </div>
         ))

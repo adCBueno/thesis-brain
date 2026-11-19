@@ -1,3 +1,4 @@
+import { rich, t } from '../lib/i18n'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { getState, replaceState, update, useAppState } from '../lib/store'
 import { reconnectFile, useSync } from '../lib/storage'
@@ -10,11 +11,11 @@ export function Head({ title, sub }: { title: ReactNode; sub: ReactNode }) {
   const { open } = useUI()
   const label =
     sync.kind === 'local'
-      ? '💾 Guardado en este navegador'
+      ? t('💾 Guardado en este navegador')
       : sync.kind === 'file'
-        ? `📁 Sincronizado con ${sync.fileName}`
+        ? t('📁 Sincronizado con {f}', { f: sync.fileName })
         : sync.kind === 'needs-permission'
-          ? `⚠️ Reconecta ${sync.fileName}`
+          ? t('⚠️ Reconecta {f}', { f: sync.fileName })
           : `⚠️ ${sync.message}`
   const reconnect = async () => {
     const newer = await reconnectFile(getState())
@@ -27,17 +28,15 @@ export function Head({ title, sub }: { title: ReactNode; sub: ReactNode }) {
           <h1>{title}</h1>
           <p className="sub">{sub}</p>
         </div>
-        <button className="sync btn ghost sm" style={{ flex: '0 0 auto' }} onClick={() => open({ kind: 'data' })} title="Datos y ajustes">
+        <button className="sync btn ghost sm" style={{ flex: '0 0 auto' }} onClick={() => open({ kind: 'data' })} title={t('Datos y ajustes')}>
           {label}
         </button>
       </div>
       {sync.kind === 'needs-permission' && (
         <div className="banner">
-          <span>
-            📁 El navegador necesita tu permiso otra vez para seguir guardando en <b>{sync.fileName}</b>. Mientras tanto, todo se guarda en el navegador.
-          </span>
+          <span>{rich('📁 El navegador necesita tu permiso otra vez para seguir guardando en <b>{f}</b>. Mientras tanto, todo se guarda en el navegador.', { f: sync.fileName })}</span>
           <button className="btn sm primary" onClick={reconnect}>
-            Reconectar
+            {t('Reconectar')}
           </button>
         </div>
       )}
@@ -110,11 +109,11 @@ export function ThemePicker({ value, onChange }: { value: string[]; onChange: (v
               add()
             }
           }}
-          placeholder="Nuevo tema (ej: “evaluation metrics”)"
+          placeholder={t('Nuevo tema (ej: “evaluation metrics”)')}
           style={{ maxWidth: 320 }}
         />
         <button type="button" className="btn sm" style={{ flex: '0 0 auto' }} onClick={add}>
-          + Tema
+          {t('+ Tema')}
         </button>
       </div>
     </div>
@@ -143,12 +142,12 @@ export function ConfirmButton({ onConfirm, children, className = 'btn ghost dang
   }, [armed])
   return (
     <button type="button" className={className} onClick={() => (armed ? onConfirm() : setArmed(true))}>
-      {armed ? '¿Seguro? Clic otra vez' : children}
+      {armed ? t('¿Seguro? Clic otra vez') : children}
     </button>
   )
 }
 
-export function CopyButton({ text, label = 'Copiar', className = 'btn primary' }: { text: string; label?: string; className?: string }) {
+export function CopyButton({ text, label, className = 'btn primary' }: { text: string; label?: string; className?: string }) {
   const [state, setState] = useState<'idle' | 'ok' | 'fail'>('idle')
   return (
     <button
@@ -164,7 +163,7 @@ export function CopyButton({ text, label = 'Copiar', className = 'btn primary' }
         setTimeout(() => setState('idle'), 2000)
       }}
     >
-      {state === 'ok' ? '¡Copiado! ✓' : state === 'fail' ? 'No se pudo copiar' : label}
+      {state === 'ok' ? t('¡Copiado! ✓') : state === 'fail' ? t('No se pudo copiar') : label ?? t('Copiar')}
     </button>
   )
 }

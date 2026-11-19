@@ -1,28 +1,31 @@
 import type { NoteKind, Paragraph, ParaStatus, Source, State, Status, Todo } from '../types'
+import { k, locale, t } from './i18n'
+
+// Labels below are i18n keys (Spanish source text): render them with t().
 
 export const uid = () => Math.random().toString(36).slice(2, 10)
 
 export const COLORS = ['#c4552d', '#3f7a63', '#3d5f8f', '#a67c10', '#8a4f9e', '#2f8a99', '#b5476b', '#6b7a2f']
 
 export const STATUS: Record<Status, [string, string]> = {
-  inbox: ['📥', 'Bandeja'],
-  toread: ['📚', 'Por leer'],
-  reading: ['👀', 'Leyendo'],
-  read: ['✅', 'Leído'],
-  done: ['🧩', 'Sintetizado'],
-  dropped: ['🗑️', 'Descartado'],
+  inbox: ['📥', k('Bandeja')],
+  toread: ['📚', k('Por leer')],
+  reading: ['👀', k('Leyendo')],
+  read: ['✅', k('Leído')],
+  done: ['🧩', k('Sintetizado')],
+  dropped: ['🗑️', k('Descartado')],
 }
 
 export const KIND: Record<NoteKind, [string, string]> = {
-  para: ['Paráfrasis', 'b-para'],
-  quote: ['Cita textual', 'b-quote'],
-  idea: ['Idea mía', 'b-idea'],
+  para: [k('Paráfrasis'), 'b-para'],
+  quote: [k('Cita textual'), 'b-quote'],
+  idea: [k('Idea mía'), 'b-idea'],
 }
 
 export const PARA_STATUS: Record<ParaStatus, [string, string]> = {
-  idea: ['💡 idea', 'b-idea'],
-  draft: ['📝 borrador', 'b-quote'],
-  done: ['✅ listo', 'b-para'],
+  idea: [k('💡 idea'), 'b-idea'],
+  draft: [k('📝 borrador'), 'b-quote'],
+  done: [k('✅ listo'), 'b-para'],
 }
 
 export function blank(): State {
@@ -67,10 +70,10 @@ export function firstAuthor(authors?: string): string {
 
 /** Short in-text citation: "Smith et al., 2021" */
 export function cite(s?: Source | null): string {
-  if (!s) return 'idea propia'
+  if (!s) return t('idea propia')
   const fa = firstAuthor(s.authors)
   const multi = AUTHOR_SPLIT.test(s.authors || '')
-  const name = fa ? fa + (multi ? ' et al.' : '') : (s.title || 'Sin título').split(/\s+/).slice(0, 3).join(' ') + '…'
+  const name = fa ? fa + (multi ? ' et al.' : '') : (s.title || t('Sin título')).split(/\s+/).slice(0, 3).join(' ') + '…'
   return name + (s.year ? ', ' + s.year : '')
 }
 
@@ -155,15 +158,15 @@ export function setSourceStatus(s: Source, st: Status): string | null {
   if (st === prev) return null
   if (st === 'reading') {
     s.startedAt = s.startedAt || Date.now()
-    return `Empezaste a leer ${cite(s)} 👀`
+    return t('Empezaste a leer {s} 👀', { s: cite(s) })
   }
   if (st === 'read' || st === 'done') {
     s.readAt = s.readAt || Date.now()
     s.startedAt = s.startedAt || s.readAt
-    return st === 'read' ? `Terminaste de leer ${cite(s)} ✅` : `Sintetizaste ${cite(s)} 🧩`
+    return st === 'read' ? t('Terminaste de leer {s} ✅', { s: cite(s) }) : t('Sintetizaste {s} 🧩', { s: cite(s) })
   }
-  if (st === 'dropped') return `Descartaste ${cite(s)}`
-  if (st === 'toread') return `${cite(s)} → Por leer`
+  if (st === 'dropped') return t('Descartaste {s}', { s: cite(s) })
+  if (st === 'toread') return `${cite(s)} → ${t('Por leer')}`
   return null
 }
 
@@ -176,8 +179,8 @@ export function exportMd(st: State): string {
     sec.paras.forEach((p) => {
       const ids = paraSources(st, p)
       ids.forEach((i) => used.add(i))
-      md += (p.text || '_(párrafo pendiente)_') + '\n'
-      if (ids.length) md += `\n*Fuentes: ${ids.map((i) => '(' + cite(sourceById(st, i)) + ')').join('; ')}*\n`
+      md += (p.text || '_(' + t('párrafo pendiente') + ')_') + '\n'
+      if (ids.length) md += `\n*${t('Fuentes')}: ${ids.map((i) => '(' + cite(sourceById(st, i)) + ')').join('; ')}*\n`
       md += '\n'
     })
   })
@@ -186,20 +189,20 @@ export function exportMd(st: State): string {
     .filter((s): s is Source => !!s)
     .sort((a, b) => (firstAuthor(a.authors) || a.title).localeCompare(firstAuthor(b.authors) || b.title))
   if (refs.length) {
-    md += '## References\n\n' + refs.map((s) => `- ${s.authors || '[autores?]'} (${s.year || 's.f.'}). ${s.title}.${s.url ? ' ' + s.url : ''}`).join('\n') + '\n'
+    md += '## References\n\n' + refs.map((s) => `- ${s.authors || '[' + t('autores?') + ']'} (${s.year || t('s.f.')}). ${s.title}.${s.url ? ' ' + s.url : ''}`).join('\n') + '\n'
   }
   return md
 }
 
-export const fmtTime = (t: number) => new Date(t).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-export const fmtDate = (t: number) => new Date(t).toLocaleDateString('es', { day: 'numeric', month: 'short' })
-export function fmtDay(t: number, now = new Date()): string {
-  const d = new Date(t)
+export const fmtTime = (ts: number) => new Date(ts).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
+export const fmtDate = (ts: number) => new Date(ts).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })
+export function fmtDay(ts: number, now = new Date()): string {
+  const d = new Date(ts)
   const y = new Date(now)
   y.setDate(now.getDate() - 1)
-  if (d.toDateString() === now.toDateString()) return 'Hoy'
-  if (d.toDateString() === y.toDateString()) return 'Ayer'
-  return d.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (d.toDateString() === now.toDateString()) return t('Hoy')
+  if (d.toDateString() === y.toDateString()) return t('Ayer')
+  return d.toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export function downloadText(filename: string, text: string, type = 'text/plain') {
@@ -229,12 +232,12 @@ export function isoDate(d = new Date()): string {
 }
 export function relDay(iso: string, today = isoDate()): string {
   const n = Math.round((new Date(iso + 'T00:00:00').getTime() - new Date(today + 'T00:00:00').getTime()) / 86_400_000)
-  if (n === 0) return 'hoy'
-  if (n === 1) return 'mañana'
-  if (n === -1) return 'ayer'
-  if (n < 0) return `hace ${-n} días`
-  if (n < 7) return `en ${n} días`
-  return new Date(iso + 'T00:00:00').toLocaleDateString('es', { day: 'numeric', month: 'short' })
+  if (n === 0) return t('hoy')
+  if (n === 1) return t('mañana')
+  if (n === -1) return t('ayer')
+  if (n < 0) return t('hace {n} días', { n: -n })
+  if (n < 7) return t('en {n} días', { n })
+  return new Date(iso + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: 'short' })
 }
 
 /** Open todos first: ⭐ important, then overdue/soonest due date, then newest. Done ones last, most recent first. */

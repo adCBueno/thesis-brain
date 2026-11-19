@@ -1,4 +1,5 @@
 import { Head, Seg, usePersisted } from '../components/common'
+import { rich, t, tp } from '../lib/i18n'
 import { useAppState } from '../lib/store'
 import { startTimer, stopTimer, useTimer, type TimerMode } from '../lib/timer'
 import { cite, countCitaQ, isoDate, noteUsed, notesOf, STATUS, todoSort } from '../lib/utils'
@@ -12,31 +13,31 @@ type Suggestion = { icon: string; title: string; meta: string; action: { view: V
 function suggestions(s: State): Suggestion[] {
   const out: Suggestion[] = []
   const inbox = s.sources.filter((x) => x.status === 'inbox')
-  if (!s.sources.length) out.push({ icon: '🧹', title: 'Vacía tus tabs aquí', meta: 'Pega todos los links de una vez y cierra las pestañas sin culpa.', action: { modal: { kind: 'bulk' } } })
+  if (!s.sources.length) out.push({ icon: '🧹', title: t('Vacía tus tabs aquí'), meta: t('Pega todos los links de una vez y cierra las pestañas sin culpa.'), action: { modal: { kind: 'bulk' } } })
   if (inbox.length)
-    out.push({ icon: '📥', title: `Clasifica ${inbox.length} fuente${inbox.length > 1 ? 's' : ''} de la bandeja`, meta: '30 segundos cada una: ¿por qué la abriste? ¿es prioridad?', action: { view: 'fuentes' } })
+    out.push({ icon: '📥', title: tp(inbox.length, 'Clasifica {n} fuente de la bandeja', 'Clasifica {n} fuentes de la bandeja'), meta: t('30 segundos cada una: ¿por qué la abriste? ¿es prioridad?'), action: { view: 'fuentes' } })
   const reading = s.sources.filter((x) => x.status === 'reading')
-  reading.slice(0, 2).forEach((x) => out.push({ icon: '👀', title: `Sigue con ${cite(x)}`, meta: x.title, action: { modal: { kind: 'source', id: x.id } } }))
+  reading.slice(0, 2).forEach((x) => out.push({ icon: '👀', title: t('Sigue con {s}', { s: cite(x) }), meta: x.title, action: { modal: { kind: 'source', id: x.id } } }))
   if (!reading.length) {
     const next = s.sources.filter((x) => x.status === 'toread').sort((a, b) => b.priority - a.priority || a.added - b.added)[0]
-    if (next) out.push({ icon: '📖', title: `Empieza a leer ${cite(next)}`, meta: next.why || next.title, action: { modal: { kind: 'source', id: next.id } } })
+    if (next) out.push({ icon: '📖', title: t('Empieza a leer {s}', { s: cite(next) }), meta: next.why || next.title, action: { modal: { kind: 'source', id: next.id } } })
   }
   const readNoNotes = s.sources.filter((x) => x.status === 'read' && !notesOf(s, x.id).length)
   if (readNoNotes.length)
     out.push({
       icon: '🗂️',
-      title: `${readNoNotes.length} leído${readNoNotes.length > 1 ? 's' : ''} sin fichas`,
-      meta: `Ej: ${cite(readNoNotes[0])}. Saca 2–3 ideas antes de olvidarlas.`,
+      title: tp(readNoNotes.length, '{n} leído sin fichas', '{n} leídos sin fichas'),
+      meta: t('Ej: {s}. Saca 2–3 ideas antes de olvidarlas.', { s: cite(readNoNotes[0]) }),
       action: { modal: { kind: 'source', id: readNoNotes[0].id } },
     })
   const ready = s.themes
     .map((t) => ({ t, n: s.notes.filter((n) => n.themeIds.includes(t.id) && !noteUsed(s, n.id)).length }))
     .filter((x) => x.n >= 3)
     .sort((a, b) => b.n - a.n)[0]
-  if (ready) out.push({ icon: '✍️', title: `“${ready.t.name}” está listo para escribir`, meta: `${ready.n} fichas que aún no usas en el borrador.`, action: { modal: { kind: 'theme', id: ready.t.id } } })
+  if (ready) out.push({ icon: '✍️', title: t('“{theme}” está listo para escribir', { theme: ready.t.name }), meta: t('{n} fichas que aún no usas en el borrador.', { n: ready.n }), action: { modal: { kind: 'theme', id: ready.t.id } } })
   const pend = countCitaQ(s)
-  if (pend) out.push({ icon: '🔖', title: `${pend} [CITA?] pendiente${pend > 1 ? 's' : ''} en el borrador`, meta: 'Busca la fuente en Fichas y vincúlala al párrafo.', action: { view: 'borrador' } })
-  if (s.sources.length && !s.outline.length) out.push({ icon: '🧱', title: 'Arma el esqueleto del borrador', meta: 'Solo títulos de secciones. Escribir feo también cuenta.', action: { view: 'borrador' } })
+  if (pend) out.push({ icon: '🔖', title: tp(pend, '{n} [CITA?] pendiente en el borrador', '{n} [CITA?] pendientes en el borrador'), meta: t('Busca la fuente en Fichas y vincúlala al párrafo.'), action: { view: 'borrador' } })
+  if (s.sources.length && !s.outline.length) out.push({ icon: '🧱', title: t('Arma el esqueleto del borrador'), meta: t('Solo títulos de secciones. Escribir feo también cuenta.'), action: { view: 'borrador' } })
   return out.slice(0, 5)
 }
 
@@ -68,31 +69,31 @@ export function Hoy() {
 
   return (
     <>
-      <Head title="Hola 👋" sub="Un paso pequeño a la vez. No tienes que tenerlo todo en la cabeza: para eso está esto." />
+      <Head title={t('Hola 👋')} sub={t('Un paso pequeño a la vez. No tienes que tenerlo todo en la cabeza: para eso está esto.')} />
       <div className="grid g2">
         <div className="card">
           <div className="row">
-            <h2 style={{ margin: 0 }}>📍 Dónde me quedé</h2>
+            <h2 style={{ margin: 0 }}>{t('📍 Dónde me quedé')}</h2>
             <button className="btn sm" style={{ flex: '0 0 auto' }} onClick={() => open({ kind: 'parking' })}>
-              Editar
+              {t('Editar')}
             </button>
           </div>
           <div style={{ marginTop: 10 }}>
             {s.parking ? (
               <div className="parking">{s.parking}</div>
             ) : (
-              <div className="meta">Al terminar cada sesión, déjale una nota a tu yo de mañana: qué estabas pensando y qué sigue. Así retomar no cuesta nada.</div>
+              <div className="meta">{t('Al terminar cada sesión, déjale una nota a tu yo de mañana: qué estabas pensando y qué sigue. Así retomar no cuesta nada.')}</div>
             )}
           </div>
-          <label className="f">Siguiente micro-paso</label>
-          {s.next ? <div style={{ fontWeight: 600 }}>👉 {s.next}</div> : <div className="meta">Algo que quepa en 25 min. Ej: “leer §3 de Smith 2021 y sacar 3 fichas”.</div>}
+          <label className="f">{t('Siguiente micro-paso')}</label>
+          {s.next ? <div style={{ fontWeight: 600 }}>👉 {s.next}</div> : <div className="meta">{t('Algo que quepa en 25 min. Ej: “leer §3 de Smith 2021 y sacar 3 fichas”.')}</div>}
         </div>
 
         <div className="card">
-          <h2>⏱️ Bloque de foco</h2>
+          <h2>{t('⏱️ Bloque de foco')}</h2>
           <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
             <div style={{ flex: '0 0 auto' }}>
-              <Seg options={[['leer', '📖 Leer'], ['escribir', '✍️ Escribir']]} value={mode} onChange={setMode} />
+              <Seg options={[['leer', t('📖 Leer')], ['escribir', t('✍️ Escribir')]]} value={mode} onChange={setMode} />
             </div>
             <div style={{ flex: '0 0 auto' }}>
               <Seg options={[['25', '25 min'], ['50', '50 min']]} value={String(mins)} onChange={(v) => setMins(Number(v))} />
@@ -103,21 +104,21 @@ export function Hoy() {
           </div>
           {timer.running ? (
             <div>
-              <span className="meta">{timer.running.mode === 'leer' ? '📖 Leyendo' : '✍️ Escribiendo'}… nada de redes 🙃 </span>
+              <span className="meta">{timer.running.mode === 'leer' ? t('📖 Leyendo… nada de redes 🙃') : t('✍️ Escribiendo… nada de redes 🙃')} </span>
               <button className="btn sm" onClick={stopTimer}>
-                Parar
+                {t('Parar')}
               </button>
             </div>
           ) : (
             <div>
-              {timer.justFinished && <div style={{ marginBottom: 8 }}>🎉 ¡Bloque completo! Estira, toma agua y actualiza “dónde me quedé”.</div>}
+              {timer.justFinished && <div style={{ marginBottom: 8 }}>{t('🎉 ¡Bloque completo! Estira, toma agua y actualiza “dónde me quedé”.')}</div>}
               <button className="btn primary" onClick={() => startTimer(mode, mins)}>
-                Empezar
+                {t('Empezar')}
               </button>
             </div>
           )}
           <div className="tip">
-            Separa bloques de <b>leer</b> y de <b>escribir</b>. Si al escribir te falta una referencia, pon <b>[CITA?]</b> y sigue: la app te las recuerda después.
+            {rich('Separa bloques de <b>leer</b> y de <b>escribir</b>. Si al escribir te falta una referencia, pon <b>[CITA?]</b> y sigue: la app te las recuerda después.')}
           </div>
         </div>
       </div>
@@ -125,19 +126,19 @@ export function Hoy() {
       <div className="grid g2" style={{ marginTop: 16 }}>
         <div className="card">
           <div className="row">
-            <h2 style={{ margin: 0 }}>✨ Para hoy</h2>
-            <button className="btn sm ghost" style={{ flex: '0 0 auto' }} onClick={() => open({ kind: 'todo' })} title="Atajo: tecla T">
-              + Anotar
+            <h2 style={{ margin: 0 }}>{t('✨ Para hoy')}</h2>
+            <button className="btn sm ghost" style={{ flex: '0 0 auto' }} onClick={() => open({ kind: 'todo' })} title={t('Atajo: tecla T')}>
+              {t('+ Anotar')}
             </button>
           </div>
           {todayTodos.length > 0 && (
             <div className="todo-list compact" style={{ margin: '10px 0 6px' }}>
-              {todayTodos.map((t) => (
-                <TodoRow key={t.id} t={t} />
+              {todayTodos.map((td) => (
+                <TodoRow key={td.id} t={td} />
               ))}
               {openTodos.length > todayTodos.length && (
                 <button className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => go('pendientes')}>
-                  Ver los {openTodos.length} pendientes →
+                  {t('Ver los {n} pendientes →', { n: openTodos.length })}
                 </button>
               )}
             </div>
@@ -153,25 +154,25 @@ export function Hoy() {
               </div>
             ))
           ) : (
-            <div className="meta">Todo al día. ¡Bien ahí! 🎉</div>
+            <div className="meta">{t('Todo al día. ¡Bien ahí! 🎉')}</div>
           )}
         </div>
         <div className="card">
-          <h2>📈 Progreso</h2>
+          <h2>{t('📈 Progreso')}</h2>
           <div className="row" style={{ textAlign: 'center', marginBottom: 14 }}>
             <div>
               <div className="stat">{total}</div>
-              <div className="meta">fuentes</div>
+              <div className="meta">{t('fuentes')}</div>
             </div>
             <div>
               <div className="stat">{s.notes.length}</div>
-              <div className="meta">fichas</div>
+              <div className="meta">{t('fichas')}</div>
             </div>
             <div>
               <div className="stat">
                 {done}/{paras}
               </div>
-              <div className="meta">párrafos listos</div>
+              <div className="meta">{t('párrafos listos')}</div>
             </div>
           </div>
           {total ? (
@@ -184,16 +185,16 @@ export function Hoy() {
               <div className="legend">
                 {SEGS.map(([k, col]) => (
                   <span key={k}>
-                    <span className="dot" style={{ background: col }} /> {STATUS[k][1]} {count(k)}
+                    <span className="dot" style={{ background: col }} /> {t(STATUS[k][1])} {count(k)}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <div className="meta">Aún sin fuentes. Empieza vaciando tus tabs.</div>
+            <div className="meta">{t('Aún sin fuentes. Empieza vaciando tus tabs.')}</div>
           )}
           <div className="meta" style={{ marginTop: 16 }}>
-            Atajos: <span className="kbd">N</span> nueva ficha · <span className="kbd">T</span> anotar pendiente/idea · <span className="kbd">Ctrl/⌘ + Enter</span> guardar · <span className="kbd">Esc</span> cerrar
+            {rich('Atajos: <kbd>N</kbd> nueva ficha · <kbd>T</kbd> anotar pendiente/idea · <kbd>Ctrl/⌘ + Enter</kbd> guardar · <kbd>Esc</kbd> cerrar')}
           </div>
         </div>
       </div>

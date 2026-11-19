@@ -1,3 +1,4 @@
+import { t } from './lib/i18n'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Nav } from './components/Nav'
 import { PwaBanner } from './components/PwaBanner'
@@ -95,8 +96,8 @@ export default function App() {
           {view === 'rastro' && <Rastro />}
         </main>
       </div>
-      <button className="btn primary fab" title="Atajo: tecla N" onClick={() => ui.open({ kind: 'note' })}>
-        ✚ Ficha
+      <button className="btn primary fab" title={t('Atajo: tecla N')} onClick={() => ui.open({ kind: 'note' })}>
+        {t('✚ Ficha')}
       </button>
       {modal && <ModalHost key={modal.key} spec={modal.spec} />}
       <PwaBanner />

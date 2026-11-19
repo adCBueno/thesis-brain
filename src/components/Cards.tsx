@@ -1,3 +1,4 @@
+import { t, tp } from '../lib/i18n'
 import { useAppState } from '../lib/store'
 import { cite, KIND, noteUsed, notesOf, parasUsing, secLabel, sourceById, themeById } from '../lib/utils'
 import type { Note, Source } from '../types'
@@ -23,9 +24,9 @@ export function SourceCard({ s }: { s: Source }) {
           </div>
         </div>
         <div className="meta" style={{ flex: '0 0 auto', textAlign: 'right' }}>
-          {nn} ficha{nn !== 1 && 's'}
+          {tp(nn, '{n} ficha', '{n} fichas')}
           <br />
-          {used.length ? 'en ' + used.map((x) => secLabel(x.si, x.pi)).join(', ') : 'sin usar aún'}
+          {used.length ? t('en {where}', { where: used.map((x) => secLabel(x.si, x.pi)).join(', ') }) : t('sin usar aún')}
         </div>
       </div>
     </div>
@@ -41,12 +42,12 @@ export function NoteCard({ n }: { n: Note }) {
     <div className="item" onClick={() => open({ kind: 'note', id: n.id })}>
       <div className="row" style={{ alignItems: 'flex-start' }}>
         <span style={{ flex: '0 0 auto' }}>
-          <span className={'badge ' + cls}>{label}</span>
+          <span className={'badge ' + cls}>{t(label)}</span>
         </span>
         <span className="meta" style={{ textAlign: 'right' }}>
           <span className="cite">{cite(s)}</span>
           {n.loc && ' · ' + n.loc}
-          {noteUsed(st, n.id) && ' · ✍️ usada'}
+          {noteUsed(st, n.id) && ' · ' + t('✍️ usada')}
         </span>
       </div>
       <div style={{ marginTop: 6 }}>{n.kind === 'quote' ? `“${n.text}”` : n.text}</div>

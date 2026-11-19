@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { t } from './i18n'
 import { update } from './store'
 
 export type TimerMode = 'leer' | 'escribir'
@@ -44,7 +45,7 @@ function tick() {
     running = null
     justFinished = true
     save(null)
-    update(() => `Bloque de ${r.mins} min ${r.mode === 'leer' ? 'leyendo 📖' : 'escribiendo ✍️'}`)
+    update(() => (r.mode === 'leer' ? t('Bloque de {n} min leyendo 📖', { n: r.mins }) : t('Bloque de {n} min escribiendo ✍️', { n: r.mins })))
   }
   emit()
 }

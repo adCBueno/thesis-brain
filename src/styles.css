@@ -215,3 +215,5 @@ button:disabled{opacity:.5;cursor:default}
 .overdue{color:#c0392b;font-weight:600}
 .due-today{color:var(--yellow);font-weight:600}
 @media (max-width:820px){.todo-actions .btn:not(.star){display:none}}
+.lang-select{width:auto;margin-top:8px;padding:4px 8px;font-size:13px;background:transparent;border-color:transparent;color:var(--muted);cursor:pointer}
+.lang-select:hover{border-color:var(--line)}

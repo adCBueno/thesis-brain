@@ -1,50 +1,52 @@
 import { useState } from 'react'
 import { ConfirmButton, Modal, Seg } from '../components/common'
+import { rich, t } from '../lib/i18n'
 import { update, useAppState } from '../lib/store'
 import { addDaysISO, cite, uid } from '../lib/utils'
 import type { Todo, TodoKind } from '../types'
 import { useUI } from '../ui'
+import { todoLogText } from '../views/Pendientes'
 
 export function TodoModal({ id }: { id?: string }) {
   const st = useAppState()
   const { close, open } = useUI()
-  const existing = id ? st.todos.find((t) => t.id === id) : undefined
+  const existing = id ? st.todos.find((x) => x.id === id) : undefined
   const [f, setF] = useState<Todo>(
     () => existing ?? { id: uid(), text: '', kind: 'todo', done: false, important: false, due: '', sourceId: '', sectionId: '', created: Date.now() },
   )
   const [details, setDetails] = useState(!!existing)
-  const set = <K extends keyof Todo>(k: K, v: Todo[K]) => setF((p) => ({ ...p, [k]: v }))
+  const set = <K extends keyof Todo>(key: K, v: Todo[K]) => setF((p) => ({ ...p, [key]: v }))
   if (id && !existing) return null
 
   const save = () => {
     const text = f.text.trim()
     if (!text) return
     update((d) => {
-      const i = d.todos.findIndex((t) => t.id === f.id)
-      const t = { ...f, text }
-      if (i >= 0) d.todos[i] = t
-      else d.todos.push(t)
-      return i >= 0 ? null : `${t.kind === 'idea' ? '💡 Idea' : '✅ Pendiente'}: “${text.slice(0, 60)}${text.length > 60 ? '…' : ''}”`
+      const i = d.todos.findIndex((x) => x.id === f.id)
+      const item = { ...f, text }
+      if (i >= 0) d.todos[i] = item
+      else d.todos.push(item)
+      return i >= 0 ? null : todoLogText(item.kind, text)
     })
     close()
   }
 
   return (
     <Modal>
-      <h2>{existing ? (f.kind === 'idea' ? 'Idea' : 'Pendiente') : 'Anotar rápido'}</h2>
+      <h2>{existing ? (f.kind === 'idea' ? t('Idea') : t('Pendiente')) : t('Anotar rápido')}</h2>
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
         <div style={{ flex: '0 0 auto' }}>
           <Seg<TodoKind>
             options={[
-              ['todo', '✅ Pendiente'],
-              ['idea', '💡 Idea'],
+              ['todo', t('✅ Pendiente')],
+              ['idea', t('💡 Idea')],
             ]}
             value={f.kind}
             onChange={(v) => set('kind', v)}
           />
         </div>
         <label className="meta" style={{ display: 'flex', gap: 6, alignItems: 'center', flex: '0 0 auto' }}>
-          <input type="checkbox" style={{ width: 'auto' }} checked={f.important} onChange={(e) => set('important', e.target.checked)} /> ⭐ importante
+          <input type="checkbox" style={{ width: 'auto' }} checked={f.important} onChange={(e) => set('important', e.target.checked)} /> {t('⭐ importante')}
         </label>
       </div>
       <textarea
@@ -59,43 +61,43 @@ export function TodoModal({ id }: { id?: string }) {
           }
         }}
         style={{ minHeight: 80, marginTop: 12 }}
-        placeholder={f.kind === 'idea' ? 'Ej: comparar mis resultados con lo que dice Smith sobre X…' : 'Ej: pedirle feedback a mi supervisor sobre la metodología'}
+        placeholder={f.kind === 'idea' ? t('Ej: comparar mis resultados con lo que dice Smith sobre X…') : t('Ej: pedirle feedback a mi supervisor sobre la metodología')}
       />
       <div className="meta" style={{ marginTop: 4 }}>
-        <span className="kbd">Enter</span> guardar · <span className="kbd">Shift + Enter</span> nueva línea
+        {rich('<kbd>Enter</kbd> guardar · <kbd>Shift + Enter</kbd> nueva línea')}
       </div>
 
       {!details ? (
         <button className="btn sm ghost" style={{ marginTop: 8 }} onClick={() => setDetails(true)}>
-          + fecha o relacionar con una fuente / sección
+          {t('+ fecha o relacionar con una fuente / sección')}
         </button>
       ) : (
         <>
           <div className="row" style={{ flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 160px' }}>
-              <label className="f">Para cuándo</label>
+              <label className="f">{t('Para cuándo')}</label>
               <input type="date" value={f.due} onChange={(e) => set('due', e.target.value)} />
             </div>
             <div style={{ flex: '0 0 auto', alignSelf: 'flex-end', display: 'flex', gap: 4 }}>
               <button className="btn sm ghost" onClick={() => set('due', addDaysISO(0))}>
-                Hoy
+                {t('Hoy')}
               </button>
               <button className="btn sm ghost" onClick={() => set('due', addDaysISO(1))}>
-                Mañana
+                {t('Mañana')}
               </button>
               <button className="btn sm ghost" onClick={() => set('due', addDaysISO(7))}>
-                +1 sem
+                {t('+1 sem')}
               </button>
               {f.due && (
                 <button className="btn sm ghost" onClick={() => set('due', '')}>
-                  Sin fecha
+                  {t('Sin fecha')}
                 </button>
               )}
             </div>
           </div>
           <div className="row" style={{ flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 220px' }}>
-              <label className="f">Fuente relacionada</label>
+              <label className="f">{t('Fuente relacionada')}</label>
               <select value={f.sourceId} onChange={(e) => set('sourceId', e.target.value)}>
                 <option value="">—</option>
                 {st.sources
@@ -108,7 +110,7 @@ export function TodoModal({ id }: { id?: string }) {
               </select>
             </div>
             <div style={{ flex: '1 1 220px' }}>
-              <label className="f">Sección del borrador</label>
+              <label className="f">{t('Sección del borrador')}</label>
               <select value={f.sectionId} onChange={(e) => set('sectionId', e.target.value)}>
                 <option value="">—</option>
                 {st.outline.map((s, i) => (
@@ -126,24 +128,24 @@ export function TodoModal({ id }: { id?: string }) {
         {existing && (
           <ConfirmButton
             onConfirm={() => {
-              update((d) => void (d.todos = d.todos.filter((t) => t.id !== existing.id)))
+              update((d) => void (d.todos = d.todos.filter((x) => x.id !== existing.id)))
               close()
             }}
           >
-            Eliminar
+            {t('Eliminar')}
           </ConfirmButton>
         )}
         {existing && f.kind === 'idea' && !existing.done && (
-          <button className="btn ghost" onClick={() => open({ kind: 'note', text: f.text, sourceId: f.sourceId || undefined, fromTodo: f.id })} title="Convertir en ficha">
-            → Ficha
+          <button className="btn ghost" onClick={() => open({ kind: 'note', text: f.text, sourceId: f.sourceId || undefined, fromTodo: f.id })} title={t('Convertir en ficha')}>
+            {t('→ Ficha')}
           </button>
         )}
         <span className="sp" />
         <button className="btn ghost" onClick={close}>
-          Cancelar
+          {t('Cancelar')}
         </button>
         <button className="btn primary" onClick={save}>
-          Guardar
+          {t('Guardar')}
         </button>
       </div>
     </Modal>
