@@ -86,3 +86,21 @@ describe('status + draft helpers', () => {
     expect(s.notes).toEqual([])
   })
 })
+
+describe('todos', () => {
+  it('sorts open ⭐ first, then by due date, then newest; done last', async () => {
+    const { todoSort } = await import('./utils')
+    const base = { kind: 'todo' as const, sourceId: '', sectionId: '', due: '', important: false, done: false }
+    const list = [
+      { ...base, id: 'old', text: 'old', created: 1 },
+      { ...base, id: 'new', text: 'new', created: 5 },
+      { ...base, id: 'due', text: 'due', created: 2, due: '2026-11-20' },
+      { ...base, id: 'star', text: 'star', created: 0, important: true },
+      { ...base, id: 'done', text: 'done', created: 9, done: true, doneAt: 10 },
+    ]
+    expect(list.sort(todoSort).map((t) => t.id)).toEqual(['star', 'due', 'new', 'old', 'done'])
+  })
+  it('normalize adds an empty todo list to old backups', () => {
+    expect(normalize({ v: 1, sources: [] }).todos).toEqual([])
+  })
+})

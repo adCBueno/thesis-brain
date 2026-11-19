@@ -1,7 +1,7 @@
 {
   "name": "thesis-brain",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A local-first second brain for writing a thesis: triage sources, capture notes, build a synthesis matrix and a draft where every paragraph knows its references.",
   "type": "module",
   "scripts": {

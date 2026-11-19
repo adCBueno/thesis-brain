@@ -9,6 +9,7 @@ import { Fichas } from './views/Fichas'
 import { Fuentes } from './views/Fuentes'
 import { Hoy } from './views/Hoy'
 import { Matriz } from './views/Matriz'
+import { Pendientes } from './views/Pendientes'
 import { Rastro } from './views/Rastro'
 
 function initialView(): View {
@@ -65,9 +66,15 @@ export default function App() {
         setModal(null)
         return
       }
-      if (!modal && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === 'n' && !isTyping()) {
-        e.preventDefault()
-        ui.open({ kind: 'note' })
+      if (!modal && !e.metaKey && !e.ctrlKey && !e.altKey && !isTyping()) {
+        const k = e.key.toLowerCase()
+        if (k === 'n') {
+          e.preventDefault()
+          ui.open({ kind: 'note' })
+        } else if (k === 't') {
+          e.preventDefault()
+          ui.open({ kind: 'todo' })
+        }
       }
     }
     window.addEventListener('keydown', onKey)
@@ -80,6 +87,7 @@ export default function App() {
         <Nav view={view} />
         <main>
           {view === 'hoy' && <Hoy />}
+          {view === 'pendientes' && <Pendientes />}
           {view === 'fuentes' && <Fuentes />}
           {view === 'fichas' && <Fichas />}
           {view === 'matriz' && <Matriz />}

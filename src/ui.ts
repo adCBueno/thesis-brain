@@ -3,7 +3,8 @@ import type { View } from './types'
 
 export type ModalSpec =
   | { kind: 'source'; id?: string }
-  | { kind: 'note'; id?: string; sourceId?: string; themeId?: string }
+  | { kind: 'note'; id?: string; sourceId?: string; themeId?: string; text?: string; fromTodo?: string }
+  | { kind: 'todo'; id?: string }
   | { kind: 'para'; si: number; pi?: number }
   | { kind: 'section'; i?: number }
   | { kind: 'theme'; id: string }
@@ -29,4 +30,4 @@ export function useUI(): UI {
   return ui
 }
 
-export const VIEWS: View[] = ['hoy', 'fuentes', 'fichas', 'matriz', 'borrador', 'rastro']
+export const VIEWS: View[] = ['hoy', 'pendientes', 'fuentes', 'fichas', 'matriz', 'borrador', 'rastro']

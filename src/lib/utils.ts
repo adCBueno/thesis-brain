@@ -1,4 +1,4 @@
-import type { NoteKind, Paragraph, ParaStatus, Source, State, Status } from '../types'
+import type { NoteKind, Paragraph, ParaStatus, Source, State, Status, Todo } from '../types'
 
 export const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -26,7 +26,7 @@ export const PARA_STATUS: Record<ParaStatus, [string, string]> = {
 }
 
 export function blank(): State {
-  return { v: 1, sources: [], themes: [], notes: [], outline: [], log: [], parking: '', next: '', updated: 0 }
+  return { v: 1, sources: [], themes: [], notes: [], outline: [], todos: [], log: [], parking: '', next: '', updated: 0 }
 }
 
 /** Fill in missing fields so older backups (including the prototype's) keep working. */
@@ -48,6 +48,8 @@ export function normalize(raw: any): State {
   }))
   s.log = s.log || []
   s.themes = s.themes || []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  s.todos = (s.todos || []).map((t: any) => ({ kind: 'todo', done: false, important: false, due: '', sourceId: '', sectionId: '', created: Date.now(), ...t }))
   return s as State
 }
 
@@ -218,4 +220,32 @@ export async function copyText(text: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+/** today as local "YYYY-MM-DD" */
+export function isoDate(d = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+export function relDay(iso: string, today = isoDate()): string {
+  const n = Math.round((new Date(iso + 'T00:00:00').getTime() - new Date(today + 'T00:00:00').getTime()) / 86_400_000)
+  if (n === 0) return 'hoy'
+  if (n === 1) return 'mañana'
+  if (n === -1) return 'ayer'
+  if (n < 0) return `hace ${-n} días`
+  if (n < 7) return `en ${n} días`
+  return new Date(iso + 'T00:00:00').toLocaleDateString('es', { day: 'numeric', month: 'short' })
+}
+
+/** Open todos first: ⭐ important, then overdue/soonest due date, then newest. Done ones last, most recent first. */
+export function todoSort(a: Todo, b: Todo): number {
+  if (a.done !== b.done) return a.done ? 1 : -1
+  if (a.done) return (b.doneAt || 0) - (a.doneAt || 0)
+  return Number(b.important) - Number(a.important) || (a.due || '9999').localeCompare(b.due || '9999') || b.created - a.created
+}
+
+export function addDaysISO(n: number, from = new Date()): string {
+  const d = new Date(from)
+  d.setDate(d.getDate() + n)
+  return isoDate(d)
 }

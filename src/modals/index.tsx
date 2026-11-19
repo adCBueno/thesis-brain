@@ -1,5 +1,6 @@
 import type { ModalSpec } from '../ui'
 import { DataModal, ParkingModal } from './Misc'
+import { TodoModal } from './Todo'
 import { CellModal, NoteModal } from './Notes'
 import { BulkModal, DroppedModal, SourceModal } from './Sources'
 import { ExportModal, ParaModal, SectionModal, ThemeModal, ThemesModal } from './Writing'
@@ -9,7 +10,9 @@ export function ModalHost({ spec }: { spec: ModalSpec }) {
     case 'source':
       return <SourceModal id={spec.id} />
     case 'note':
-      return <NoteModal id={spec.id} sourceId={spec.sourceId} themeId={spec.themeId} />
+      return <NoteModal id={spec.id} sourceId={spec.sourceId} themeId={spec.themeId} text={spec.text} fromTodo={spec.fromTodo} />
+    case 'todo':
+      return <TodoModal id={spec.id} />
     case 'para':
       return <ParaModal si={spec.si} pi={spec.pi} />
     case 'section':

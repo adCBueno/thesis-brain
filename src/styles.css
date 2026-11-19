@@ -198,3 +198,20 @@ h1{font-size:25px}
 button:disabled{opacity:.5;cursor:default}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:60;display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:14px;max-width:calc(100vw - 32px)}
 @media (max-width:820px){.toast{bottom:150px}}
+.capture{padding:14px 16px}
+.capture-input{font-size:15.5px;padding:10px 12px}
+.todo-list{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.todo-list.compact{background:none;border:0;border-radius:0}
+.todo-row{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border-top:1px solid var(--line)}
+.todo-row:first-child{border-top:0}
+.todo-list.compact .todo-row{padding:8px 2px}
+.todo-check{width:18px;height:18px;margin-top:2px;flex:0 0 auto;accent-color:var(--accent);cursor:pointer}
+.todo-body{flex:1;min-width:0;cursor:pointer}
+.todo-text{white-space:pre-wrap;word-break:break-word}
+.todo-row.done .todo-text{text-decoration:line-through;color:var(--muted)}
+.todo-actions{display:flex;gap:2px;flex:0 0 auto;align-items:center}
+.todo-actions .star{font-size:15px;color:var(--muted)}
+.todo-actions .star.on{color:inherit}
+.overdue{color:#c0392b;font-weight:600}
+.due-today{color:var(--yellow);font-weight:600}
+@media (max-width:820px){.todo-actions .btn:not(.star){display:none}}

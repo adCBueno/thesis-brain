@@ -13,14 +13,14 @@ function lastSource(): string {
   return st.sources.find((s) => s.status === 'reading')?.id || ''
 }
 
-export function NoteModal({ id, sourceId, themeId }: { id?: string; sourceId?: string; themeId?: string }) {
+export function NoteModal({ id, sourceId, themeId, text: preText, fromTodo }: { id?: string; sourceId?: string; themeId?: string; text?: string; fromTodo?: string }) {
   const st = useAppState()
   const { open, close } = useUI()
   const existing = id ? st.notes.find((n) => n.id === id) : undefined
   const [f, setF] = useState<Note>(() =>
     existing
       ? { ...existing }
-      : { id: uid(), sourceId: sourceId ?? lastSource(), loc: '', kind: 'para', text: '', mine: '', themeIds: themeId ? [themeId] : [], created: Date.now() },
+      : { id: uid(), sourceId: sourceId ?? lastSource(), loc: '', kind: fromTodo ? 'idea' : 'para', text: preText ?? '', mine: '', themeIds: themeId ? [themeId] : [], created: Date.now() },
   )
   const [err, setErr] = useState(false)
   const set = <K extends keyof Note>(k: K, v: Note[K]) => setF((p) => ({ ...p, [k]: v }))
@@ -50,7 +50,14 @@ export function NoteModal({ id, sourceId, themeId }: { id?: string; sourceId?: s
         if (s.status === 'toread' || s.status === 'inbox') setSourceStatus(s, 'reading')
         n.themeIds.forEach((t) => !s.themeIds.includes(t) && s.themeIds.push(t))
       }
-      return `${isNew ? 'Ficha' : 'Editaste ficha'} de ${cite(s)}: “${text.slice(0, 60)}${text.length > 60 ? '…' : ''}”`
+      if (fromTodo) {
+        const t = d.todos.find((x) => x.id === fromTodo)
+        if (t) {
+          t.done = true
+          t.doneAt = Date.now()
+        }
+      }
+      return `${isNew ? (fromTodo ? 'Idea → ficha' : 'Ficha') : 'Editaste ficha'} de ${cite(s)}: “${text.slice(0, 60)}${text.length > 60 ? '…' : ''}”`
     })
     if (again) open({ kind: 'note', sourceId: f.sourceId })
     else close()

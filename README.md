@@ -21,6 +21,7 @@ Research on thesis writing keeps pointing to the same problems:
 ## Features
 
 - 📥 **Tab dump + triage**: paste dozens of URLs/titles at once (duplicates ignored, papers auto-detected), then give each a one-line "why I opened it" and a priority
+- ✅ **To-dos & ideas (Pendientes)**: capture anything while you work with `T` from any view, ⭐ important items show on *Hoy*, optional due date and link to a source or draft section, turn an idea into a note with one click
 - 📚 **Sources**: Inbox → To read → Reading → Read → Synthesised (or dropped, recoverable)
 - 🗂️ **Notes (fichas)**: paraphrase / quote / own idea, page or section, *your* comment, themes. Press `N` anywhere
 - 🧩 **Synthesis matrix**, with weak-evidence themes flagged
@@ -28,7 +29,7 @@ Research on thesis writing keeps pointing to the same problems:
 - ✨ **AI synthesis (optional)**: with your own Anthropic API key, or copy the prompt into Claude
 - ⏱️ **Focus timer** (25/50 min) that survives reloads and logs completed blocks
 - 📲 **Installable app (PWA)**: own window and Dock/taskbar icon, works offline, asks before updating
-- ⌨️ Shortcuts: `N` new note · `Ctrl/⌘ + Enter` save · `Esc` close
+- ⌨️ Shortcuts: `N` new note · `T` quick to-do / idea · `Ctrl/⌘ + Enter` save · `Esc` close
 
 ## Install it as an app
 
@@ -90,7 +91,7 @@ src/
     timer.ts           # focus timer that survives reloads
     pwa.ts             # install prompt handling
   components/          # Nav, cards, shared UI (Modal, ThemePicker, ConfirmButton…)
-  views/               # Hoy, Fuentes, Fichas, Matriz, Borrador, Rastro
+  views/               # Hoy, Pendientes, Fuentes, Fichas, Matriz, Borrador, Rastro
   modals/              # source, note, paragraph, theme workspace, export, settings…
 ```
 

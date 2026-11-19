@@ -1,7 +1,8 @@
 import { Head, Seg, usePersisted } from '../components/common'
 import { useAppState } from '../lib/store'
 import { startTimer, stopTimer, useTimer, type TimerMode } from '../lib/timer'
-import { cite, countCitaQ, noteUsed, notesOf, STATUS } from '../lib/utils'
+import { cite, countCitaQ, isoDate, noteUsed, notesOf, STATUS, todoSort } from '../lib/utils'
+import { TodoRow } from './Pendientes'
 import type { State, Status } from '../types'
 import { useUI, type ModalSpec } from '../ui'
 import type { View } from '../types'
@@ -60,6 +61,10 @@ export function Hoy() {
   const paras = s.outline.reduce((a, x) => a + x.paras.length, 0)
   const done = s.outline.reduce((a, x) => a + x.paras.filter((p) => p.status === 'done').length, 0)
   const sug = suggestions(s)
+  // Pendientes for today: important or due today/overdue first, otherwise the next few.
+  const openTodos = s.todos.filter((t) => !t.done && t.kind === 'todo').sort(todoSort)
+  const urgent = openTodos.filter((t) => t.important || (t.due && t.due <= isoDate()))
+  const todayTodos = (urgent.length ? urgent : openTodos).slice(0, 4)
 
   return (
     <>
@@ -119,7 +124,24 @@ export function Hoy() {
 
       <div className="grid g2" style={{ marginTop: 16 }}>
         <div className="card">
-          <h2>✨ Para hoy</h2>
+          <div className="row">
+            <h2 style={{ margin: 0 }}>✨ Para hoy</h2>
+            <button className="btn sm ghost" style={{ flex: '0 0 auto' }} onClick={() => open({ kind: 'todo' })} title="Atajo: tecla T">
+              + Anotar
+            </button>
+          </div>
+          {todayTodos.length > 0 && (
+            <div className="todo-list compact" style={{ margin: '10px 0 6px' }}>
+              {todayTodos.map((t) => (
+                <TodoRow key={t.id} t={t} />
+              ))}
+              {openTodos.length > todayTodos.length && (
+                <button className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => go('pendientes')}>
+                  Ver los {openTodos.length} pendientes →
+                </button>
+              )}
+            </div>
+          )}
           {sug.length ? (
             sug.map((x, i) => (
               <div key={i} className="sugg" onClick={() => ('view' in x.action ? go(x.action.view) : open(x.action.modal))}>
@@ -171,7 +193,7 @@ export function Hoy() {
             <div className="meta">Aún sin fuentes. Empieza vaciando tus tabs.</div>
           )}
           <div className="meta" style={{ marginTop: 16 }}>
-            Atajos: <span className="kbd">N</span> nueva ficha · <span className="kbd">Ctrl/⌘ + Enter</span> guardar · <span className="kbd">Esc</span> cerrar
+            Atajos: <span className="kbd">N</span> nueva ficha · <span className="kbd">T</span> anotar pendiente/idea · <span className="kbd">Ctrl/⌘ + Enter</span> guardar · <span className="kbd">Esc</span> cerrar
           </div>
         </div>
       </div>

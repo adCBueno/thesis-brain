@@ -10,6 +10,7 @@ export function Nav({ view }: { view: View }) {
   const inbox = s.sources.filter((x) => x.status === 'inbox').length
   const items: [View, string, string, string | number][] = [
     ['hoy', '🌤️', 'Hoy', ''],
+    ['pendientes', '✅', 'Pendientes', s.todos.filter((t) => !t.done).length || ''],
     ['fuentes', '📚', 'Fuentes', inbox ? `${inbox} 📥` : s.sources.filter((x) => x.status !== 'dropped').length || ''],
     ['fichas', '🗂️', 'Fichas', s.notes.length || ''],
     ['matriz', '🧩', 'Matriz', s.themes.length || ''],

@@ -1,7 +1,8 @@
 export type Status = 'inbox' | 'toread' | 'reading' | 'read' | 'done' | 'dropped'
 export type NoteKind = 'para' | 'quote' | 'idea'
 export type ParaStatus = 'idea' | 'draft' | 'done'
-export type View = 'hoy' | 'fuentes' | 'fichas' | 'matriz' | 'borrador' | 'rastro'
+export type View = 'hoy' | 'pendientes' | 'fuentes' | 'fichas' | 'matriz' | 'borrador' | 'rastro'
+export type TodoKind = 'todo' | 'idea'
 
 export interface Source {
   id: string
@@ -57,6 +58,22 @@ export interface Section {
   paras: Paragraph[]
 }
 
+export interface Todo {
+  id: string
+  text: string
+  kind: TodoKind
+  done: boolean
+  /** ⭐ shows first and on "Hoy" */
+  important: boolean
+  /** optional "YYYY-MM-DD" */
+  due: string
+  /** optional links to what it is about */
+  sourceId: string
+  sectionId: string
+  created: number
+  doneAt?: number
+}
+
 export interface LogEntry {
   t: number
   m: string
@@ -68,6 +85,7 @@ export interface State {
   themes: Theme[]
   notes: Note[]
   outline: Section[]
+  todos: Todo[]
   log: LogEntry[]
   parking: string
   next: string
